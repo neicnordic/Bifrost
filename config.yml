@@ -1,1 +1,4 @@
-- jobtype: <this config file will get automatically populated by the start script>
+- country: Norway
+  inputfile: inputFile.vcf
+  jobtype: imputation
+  md5sum: b6d81b360a5672d80c27430f39153e2c
