@@ -29,11 +29,13 @@ if args.jobtype == "imputation":
 	configYml[0]["jobtype"] = args.jobtype
 	configYml[0]["country"] = args.country
 	configYml[0]["md5sum"] = md5Returned
+	configYml[0]["filecopied"] = "False"
 
 # Add schizophrenia specific lines to the config.yml file
-elif args.jobtype == "scz" or "schizophrenia":
+elif args.jobtype == "schizophrenia":
 	configYml[0]["jobtype"] = args.jobtype
 	configYml[0]["country"] = args.country
+	configYml[0]["filecopied"] = "False"
 
 # Write changes to the config.yml file
 with open("config.yml", "w") as f:
