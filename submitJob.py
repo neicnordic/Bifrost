@@ -8,6 +8,7 @@ parser = argparse.ArgumentParser(description='Define job parameters for query su
 parser.add_argument('--vcf', type = str, action = 'store', help = 'VCF file for imputation job submission')
 parser.add_argument('--jobtype', type = str, action = 'store', help = 'Define job type, imputation and schizophrenia are valid')
 parser.add_argument('--country', type = str, action = 'store', help = 'Define in which country to run the job or jobs')
+parser.add_argument('--scriptid', type = str, action = 'store', help = 'Define what script to run (for schizophrenia use case)')
 
 args = parser.parse_args()
 yam = "config.yml"
@@ -35,7 +36,9 @@ if args.jobtype == "imputation":
 elif args.jobtype == "schizophrenia":
 	configYml[0]["jobtype"] = args.jobtype
 	configYml[0]["country"] = args.country
+	configYml[0]["scriptid"] = args.scriptid
 	configYml[0]["filecopied"] = "False"
+	#TODO input params for the script? Command line args or some sort of config input file?
 
 # Write changes to the config.yml file
 with open("config.yml", "w") as f:
