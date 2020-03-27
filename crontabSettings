@@ -22,4 +22,4 @@
 # m h  dom mon dow   command
 
 # Run script once per minute
-*/1 * * * * /home/oskar/01-workspace/00-temp/Bifrost/readConfig.py
+*/1 * * * * /path/to/Bifrost/readConfig.py >> ~/readConfig.log
