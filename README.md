@@ -33,7 +33,8 @@ Because we are going to run an imputation job we can begin by writing:
 ```
 Now locate your input file, let's assume it's at:
 ```bash
-/home/username/inputFiles/dataToImpute.vcf```
+/home/username/inputFiles/dataToImpute.vcf
+```
 now you can write:
 ```bash
 ./submitJob.py --jobtype imputation --vcf /home/username/inputFiles/dataToImpute.vcf
