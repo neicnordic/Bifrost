@@ -7,6 +7,7 @@ from shutil import copyfile
 import os
 import datetime
 
+# Put this path in a separate config file?
 basepath = "/home/ubuntu/imputeDisk/01-workspace/00-temp/bifrost-testing/"
 yml = basepath + "config.yml"
 
@@ -45,6 +46,7 @@ if configYml[0]["jobtype"] == "imputation":
 			yaml.dump(configYml, f, default_flow_style=False)
 
 		# Decrypt file with crypt4gh
+		# Make this as general and easy as possible to configure
 		decrypt = "/usr/local/bin/crypt4gh decrypt --sk /home/ubuntu/.c4gh/nrec.sec <" + basepath + configYml[0]["encryptedinput"] + ">" + basepath + configYml[0]["inputfile"]
 		subprocess.call(decrypt, shell=True)
 		print "Done decrypting"

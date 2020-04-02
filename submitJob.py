@@ -36,9 +36,6 @@ if args.jobtype == "imputation":
 
 # Encrypt input file
 	print("Encrypting file")
-	# This is currently a workaround that needs to be fixed
-	# The proper line to run the crypt4gh command should be the one below the line with the script
-	# But it does not work, I am at a loss
 	# TODO remove hardcoded paths
 	subprocess.call("(crypt4gh encrypt --sk /home/oskar/01-workspace/00-temp/Bifrost/secretEmblaKey --recipient_pk /home/oskar/01-workspace/00-temp/Bifrost/nrec.pub <" + args.vcf + "> /home/oskar/01-workspace/00-temp/Bifrost/encryptedVCF.c4gh)", shell=True)
 	# TODO remove hardcoded name
