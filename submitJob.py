@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import re
 import os
 import subprocess
 import sys
@@ -18,6 +19,9 @@ parser.add_argument('--pubkey', type = str, action = 'store', help = 'Supply the
 parser.add_argument('--seckey', type = str, action = 'store', help = 'Supply the public key for encryption of input file')
 
 args = parser.parse_args()
+vcf = os.path.abspath(args.vcf)
+pubkey = os.path.abspath(args.pubkey)
+seckey = os.path.abspath(args.seckey)
 yam = "config.yml"
 
 # Open the config file
@@ -27,7 +31,7 @@ with open("config.yml") as f:
 # if statements that decide if the config file will define an imputation or schizophrenia job
 if args.jobtype == "imputation":
 	# Open,close, read file and calculate md5sum on its contents
-	with open(args.vcf) as fileToCheck:
+	with open(vcf) as fileToCheck:
 		# read contents of the file
 		data = fileToCheck.read()
 		# pipe contents of the file through
@@ -36,17 +40,28 @@ if args.jobtype == "imputation":
 
 # Encrypt input file
 	print("Encrypting file")
-	# TODO remove hardcoded paths
-	subprocess.call("(crypt4gh encrypt --sk /home/oskar/01-workspace/00-temp/Bifrost/secretEmblaKey --recipient_pk /home/oskar/01-workspace/00-temp/Bifrost/nrec.pub <" + args.vcf + "> /home/oskar/01-workspace/00-temp/Bifrost/encryptedVCF.c4gh)", shell=True)
-	# TODO remove hardcoded name
-	encryptedInput = 'encryptedVCF.c4gh'
-	print("Encrypted file")
+	inputBasename = os.path.basename(vcf)
+	encryptedInput = inputBasename + '.c4gh'
+	encrInDir = os.path.abspath("encrypted-" + re.sub('\.vcf.gz$', '', inputBasename))
+	os.mkdir(encrInDir)
+	os.chdir(encrInDir)
+	encrypt = "crypt4gh encrypt --sk " + seckey + " --recipient_pk " + pubkey + " < " + vcf + " > " + encryptedInput
+	subprocess.call(encrypt, shell=True)
+	print("Input file has been encrypted")
+
+	with open(encryptedInput) as fileToCheck:
+		# read contents of the file
+		data = fileToCheck.read()
+		# pipe contents of the file through
+		print "Calculating encrypted input file md5sum"
+		encryptedMd5Returned = hashlib.md5(data).hexdigest()
 
 # Add imputation specific lines to the config.yml file
-	configYml[0]["inputfile"] = os.path.basename(args.vcf)
+	configYml[0]["inputfile"] = os.path.basename(vcf)
 	configYml[0]["jobtype"] = args.jobtype
 	configYml[0]["country"] = args.country
 	configYml[0]["md5sum"] = md5Returned
+	configYml[0]["encryptedmd5sum"] = encryptedMd5Returned
 	configYml[0]["filecopied"] = "False"
 	configYml[0]["decrypting"] = "False"
 	configYml[0]["encryptedinput"] = encryptedInput
@@ -65,23 +80,24 @@ with open("config.yml", "w") as f:
 
 # Do ssh things to send the files
 def createSSHClient(server, port, user, password):
-    client = paramiko.SSHClient()
-    client.load_system_host_keys()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(server, port, user, password)
-    return client
+	client = paramiko.SSHClient()
+	client.load_host_keys(os.path.expanduser('~/.ssh/known_hosts'))
+	client.load_system_host_keys()
+	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+	client.connect(server, port, user, password)
+	return client
 
 # Run scp to copy the file
 ssh = SSHClient()
 ssh.load_system_host_keys()
-ssh.connect('ip.number', username="username")
+ssh.connect('bifrost', username="ubuntu")
 
 # SCPCLient takes a paramiko transport as an argument
 def progress(filename, size, sent):
-    sys.stdout.write("%s\'s progress: %.2f%%   \r" % (filename, float(sent)/float(size)*100) )
+	sys.stdout.write("%s\'s progress: %.2f%%   \r" % (filename, float(sent)/float(size)*100) )
 scp = SCPClient(ssh.get_transport(), progress=progress)
 
 # Do the actual file transfer
 print "Transferring files to TSD"
-scp.put([encryptedInput, yam], remote_path='/home/ubuntu/01-workspace/00-temp/bifrost-testing')
+scp.put([encrInDir], remote_path='/home/ubuntu/imputeDisk/01-workspace/00-temp/bifrost-testing', recursive = True)
 scp.close()
