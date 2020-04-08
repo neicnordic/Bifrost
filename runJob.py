@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 
+import re
 import docker
 import sys
 import subprocess
