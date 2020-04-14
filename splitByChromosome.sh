@@ -28,6 +28,7 @@ tabix -p vcf $VCF
 
 # Create basename from vcf file name
 BASENAME=${VCF/.vcf.gz}
+BASENAME=${BASENAME##*/}
 
 # Split vcf file per chromosome
 for chrom in $(tabix --list-chroms $VCF); do
