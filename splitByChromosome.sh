@@ -30,14 +30,16 @@ tabix -p vcf $VCF
 BASENAME=${VCF/.vcf.gz}
 BASENAME=${BASENAME##*/}
 
+mkdir -p inputs
+
 # Split vcf file per chromosome
 for chrom in $(tabix --list-chroms $VCF); do
 	# Create output name variable
 	OUTPUTNAME=$BASENAME-$chrom.vcf.gz
 
 	# Create vcf file with single chromosome
-	tabix -h $VCF $chrom | bgzip -c > output/$OUTPUTNAME
+	tabix -h $VCF $chrom | bgzip -c > inputs/$OUTPUTNAME
 
 	# index the vcf file
-	tabix -p vcf output/$OUTPUTNAME
+	tabix -p vcf inputs/$OUTPUTNAME
 done
