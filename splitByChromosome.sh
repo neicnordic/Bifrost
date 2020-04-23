@@ -24,7 +24,7 @@ if [[ ! -x $BGZIP ]]; then
 fi
 
 # Index the vcf file
-tabix -p vcf $VCF
+tabix -f -p vcf $VCF
 
 # Create basename from vcf file name
 BASENAME=${VCF/.vcf.gz}
@@ -41,5 +41,5 @@ for chrom in $(tabix --list-chroms $VCF); do
 	tabix -h $VCF $chrom | bgzip -c > inputs/$OUTPUTNAME
 
 	# index the vcf file
-	tabix -p vcf inputs/$OUTPUTNAME
+	tabix -f -p vcf inputs/$OUTPUTNAME
 done

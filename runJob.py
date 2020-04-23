@@ -29,7 +29,6 @@ for dir in searchpath:
 print "No job is running, will process data in " + searchpath[0] + ", creating lockfile and attempting to start job."
 cwd = searchpath[0] + "/"
 os.chdir(cwd)
-yml = "config.yml"
 
 # Create lockfile
 open("lockfile", 'a').close()
@@ -56,7 +55,7 @@ if configYml[0]["jobtype"] == "imputation":
 	# While loop that runs until job is successful or fails
 	while True:
 		if configYml[0]["filecopied"] == "True" and configYml[0]["decrypting"] == "True":
-			# Put the encrypted input file in a variable with absolute path added
+			# Put the encrypted input file in a variable
 			inputfile = configYml[0]["inputfile"]
 
 			# Verify that the file exists on disk
@@ -87,7 +86,14 @@ if configYml[0]["jobtype"] == "imputation":
 				if configYml[0]["md5sum"] == md5Returned:
 					# TODO make this into a function
 					print "File integrity is intact"
+					print "Splitting vcf by chromosome"
+					print cwd + inputfile
+					split = bifrost + "/splitByChromosome.sh " + cwd + inputfile + " " + imputationserver + "/apps/imputationserver/1.2.7/bin/tabix " + imputationserver + "/apps/imputationserver/1.2.7/bin/bgzip"
+					print split
+					subprocess.call(split, shell=True)
+					print "Finished splitting vcf file by chromosome"
 					print "Starting impute job"
+					inputs = cwd + "inputs/"
 
 					# Start the imputation job
 					client = docker.from_env()
@@ -103,7 +109,7 @@ if configYml[0]["jobtype"] == "imputation":
 								'bind':'/outputs/',
 								'mode':'rw'
 									},
-							cwd: {
+							inputs: {
 								'bind':'/inputs/',
 								'mode':'rw'
 									},
@@ -113,13 +119,15 @@ if configYml[0]["jobtype"] == "imputation":
 									},
 								}, detach = False
 					)
-					# Create "done" file to stop cron job from starting new imputation job
+					# Create "done" file to show that the docker job exited successfully
 					open(cwd + "done", 'a').close()
 					print "Job has exited, 'done' file has been created"
 					print "Removing lockfile"
 					os.remove("lockfile")
-					exitedDirName = re.sub("decrypted", "Exited", cwd)
+					exitedDirName = re.sub("decrypted", "JobFinished", cwd)
 					os.rename(cwd, exitedDirName)
+					print "Work directory has been renamed from " + os.basename(cwd) + " to " + exitedDirName
+					print "Job finished successfully!"
 					break
 				else:
 					print "File is not the same, did the decryption fail? Exiting"
