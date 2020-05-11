@@ -11,16 +11,16 @@ from paramiko import SSHClient, RSAKey
 from scp import SCPClient
 from shutil import copy
 from datetime import datetime
+from ConfigYml import ConfigYml
 
-from Constants import YAML_FILENAME, BASEPATH
+from Constants import YAML_FILENAME, BASEPATH, SCHIZOPHRENIA, ENCRYPTED_INPUT
 
 def submitJob(args):
-	# Open the config file
-	with open(YAML_FILENAME) as f:
-		configYml = yaml.load(f, Loader=yaml.FullLoader)
-
 	# if statements that decide if the config file will define an imputation or schizophrenia job
 	if args.jobtype == "imputation":
+		# Open the config file
+		with open(YAML_FILENAME) as f:
+			configYml = yaml.load(f, Loader=yaml.FullLoader)
 		# Open,close, read file and calculate md5sum on its contents
 		vcf = os.path.abspath(args.vcf)
 		with open(vcf) as fileToCheck:
@@ -60,24 +60,23 @@ def submitJob(args):
 		configYml[0]["decrypting"] = "False"
 		configYml[0]["encryptedinput"] = encryptedInput
 
+		# Write changes to the config.yml file
+		with open(os.path.join(encrInDir, YAML_FILENAME), "w") as f:
+			yaml.dump(configYml, f, default_flow_style=False)
+
 	# Add schizophrenia specific lines to the config.yml file
-	elif args.jobtype == "schizophrenia":
-		configYml[0]["jobtype"] = args.jobtype
-		configYml[0]["country"] = args.country
-		configYml[0]["scriptid"] = args.scriptid
-		configYml[0]["filecopied"] = "False"
-		configYml[0]["decrypting"] = "False"
+	elif args.jobtype == SCHIZOPHRENIA:
+		configYml = ConfigYml(YAML_FILENAME)
+		configYml.initFromArgs(args)
 
 		encryptedConfig = encryptFile(os.path.abspath(args.sczconfig), os.path.abspath(args.pubkey), os.path.abspath(args.seckey))
 		encrInDir = os.path.abspath("encrypted-" + datetime.now().strftime('%Y-%m-%d-%H:%M:%S'))
 		os.mkdir(encrInDir)
 		copy(encryptedConfig, encrInDir)
 
-		configYml[0]["encryptedinput"] = encryptedConfig
+		configYml.setValue(ENCRYPTED_INPUT, encryptedConfig)
 
-	# Write changes to the config.yml file
-	with open(os.path.join(encrInDir, YAML_FILENAME), "w") as f:
-		yaml.dump(configYml, f, default_flow_style=False)
+		configYml.dumpYAML(os.path.join(encrInDir, YAML_FILENAME))
 
 	# Run scp to copy the file
 	transferFiles(encrInDir)
