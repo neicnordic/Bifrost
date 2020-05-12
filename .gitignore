@@ -1,3 +1,4 @@
 README.html
 __pycache__/
-constants.pyc 
+*.pyc
+*.c4gh
