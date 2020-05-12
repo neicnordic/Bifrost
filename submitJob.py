@@ -30,39 +30,27 @@ def submitJob(args):
 			print("Calculating md5sum")
 			md5Returned = hashlib.md5(data).hexdigest()
 
-		# Encrypt input file
-		print("Encrypting file")
+		inputBasename = os.path.basename(vcf)
 		pubKey = os.path.abspath(args.pubKey)
-		secKey = os.path.abspath(args.secKey)
-		inputBaseName = os.path.basename(vcf)
-		encryptedInput = inputBaseName + '.c4gh'
-		encrInDir = os.path.abspath("encrypted-" + re.sub('\.vcf.gz$', '', inputBaseName))
-		os.mkdir(encrInDir)
-		os.chdir(encrInDir)
-		encrypt = "crypt4gh encrypt --sk " + secKey + " --recipient_pk " + pubKey + " < " + vcf + " > " + encryptedInput
-		subprocess.call(encrypt, shell=True)
-		print("Input file has been encrypted")
-
-		with open(encryptedInput) as fileToCheck:
-			# read contents of the file
-			data = fileToCheck.read()
-			# pipe contents of the file through
-			print("Calculating encrypted input file md5sum")
-			encryptedMd5Returned = hashlib.md5(data).hexdigest()
+		pubKeyBasename = os.path.basename(pubKey)
 
 		# Add imputation specific lines to the config.yml file
-		configYml[0]["inputFile"] = os.path.basename(vcf)
 		configYml[0]["jobType"] = args.jobType
 		configYml[0]["country"] = args.country
 		configYml[0]["md5sum"] = md5Returned
-		configYml[0]["encrMd5sum"] = encryptedMd5Returned
+		configYml[0]["pubkey"] = pubKeyBasename
+		configYml[0]["inputFile"] = inputBasename
 		configYml[0]["fileCopied"] = "False"
 		configYml[0]["decrypting"] = "False"
-		configYml[0]["encryptedInput"] = encryptedInput
 
 		# Write changes to the config.yml file
-		with open(os.path.join(encrInDir, yamlFileName), "w") as f:
+		with open(yamlFileName, "w") as f:
 			yaml.dump(configYml, f, default_flow_style=False)
+		inputDir = "unprocessed-" + re.sub('\.vcf.gz.c4gh$', '', inputBasename) + "/"
+		s3dest = "s3://impute-inputs/" + inputDir
+		s3command = "tsd-s3cmd put " + vcf + " " + pubKey + " " + yamlFileName + " " + s3dest
+		subprocess.call(s3command, shell=True)
+		quit()
 
 	# Add schizophrenia specific lines to the config.yml file
 	elif args.jobType == schizophrenia:
@@ -78,8 +66,8 @@ def submitJob(args):
 
 		configYml.dumpYAML(os.path.join(encrInDir, yamlFileName))
 
-	# Run scp to copy the file
-	transferFiles(encrInDir)
+		# Run scp to copy the file
+		transferFiles(encrInDir)
 
 
 def transferFiles(inputFolder):
