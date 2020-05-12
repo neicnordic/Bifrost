@@ -100,7 +100,7 @@ if configYml[0]["jobType"] == "imputation":
 					client = docker.from_env()
 					container = client.containers.run(
 						'genepi/imputationserver:latest',
-						"/data/start-impute.sh",
+						"/data/startImpute.sh",
 						volumes = {
 							bifrost: {
 								'bind':'/bifrost/',
