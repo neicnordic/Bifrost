@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 import re
 import docker
@@ -12,27 +12,28 @@ import os
 import datetime
 from glob import glob
 
+from Constants import YAML_FILENAME, BASEPATH
+
 # TODO Put this path in a separate config file?
-basepath = "/home/ubuntu/imputeDisk/01-workspace/00-temp/bifrost-testing/"
 imputationserver = "/home/ubuntu/imputeDisk/01-workspace/00-temp/imputationserver"
 bifrost = "/home/ubuntu/imputeDisk/01-workspace/00-temp/Bifrost"
-searchpath = glob(basepath + "/decrypted-*")
+searchpath = glob(os.path.join(BASEPATH, "encrypted-*"))
 
 # Setting current work directory to the "next one" that gets globbed when the searchpath variable is created
 # No fancy job prioritization is done
 i = 0
 for dir in searchpath:
 	if os.path.isfile(dir + "/lockfile"):
-		print dir + " has a lockfile, a job is running, exiting now."
+		print(dir + " has a lockfile, a job is running, exiting now.")
 		quit()
 
-print "No job is running, will process data in " + searchpath[0] + ", creating lockfile and attempting to start job."
+print("No job is running, will process data in " + searchpath[0] + ", creating lockfile and attempting to start job.")
 cwd = searchpath[0] + "/"
 os.chdir(cwd)
 
 # Create lockfile
 open("lockfile", 'a').close()
-print "Created lock file so no other job can be started."
+print("Created lock file so no other job can be started.")
 if not os.path.isdir("outputs"):
 	os.makedirs("outputs")
 	print("Created outputs directory.")
@@ -43,7 +44,7 @@ outputs = cwd + "outputs"
 
 # Load the config file
 try:
-	with open("config.yml") as file:
+	with open(YAML_FILENAME) as file:
 		configYml = yaml.load(file, Loader=yaml.FullLoader)
 # Print error message if file is not found
 except IOError:
@@ -74,25 +75,25 @@ if configYml[0]["jobtype"] == "imputation":
 			with open(inputfile) as fileToCheck:
 				# TODO make this into a function
 				# Read contents of the file into variable
-				print "Loading decrypted input file"
+				print("Loading decrypted input file")
 				data = fileToCheck.read()
 
 				# Calculate md5sum to verify that the file has been transferred successfully
-				print "Calculating md5sum"
+				print("Calculating md5sum")
 				md5Returned = hashlib.md5(data).hexdigest()
-				print "Finished calculating md5sum"
+				print("Finished calculating md5sum")
 
 				# Compare md5sum and copy files to the scratch disk if the md5sum is intact after decryption
 				if configYml[0]["md5sum"] == md5Returned:
 					# TODO make this into a function
-					print "File integrity is intact"
-					print "Splitting vcf by chromosome"
-					print cwd + inputfile
+					print("File integrity is intact")
+					print("Splitting vcf by chromosome")
+					print(cwd + inputfile)
 					split = bifrost + "/splitByChromosome.sh " + cwd + inputfile + " " + imputationserver + "/apps/imputationserver/1.2.7/bin/tabix " + imputationserver + "/apps/imputationserver/1.2.7/bin/bgzip"
-					print split
+					print(split)
 					subprocess.call(split, shell=True)
-					print "Finished splitting vcf file by chromosome"
-					print "Starting impute job"
+					print("Finished splitting vcf file by chromosome")
+					print("Starting impute job")
 					inputs = cwd + "inputs/"
 
 					# Start the imputation job
@@ -121,23 +122,23 @@ if configYml[0]["jobtype"] == "imputation":
 					)
 					# Create "done" file to show that the docker job exited successfully
 					open(cwd + "done", 'a').close()
-					print "Job has exited, 'done' file has been created"
-					print "Removing lockfile"
+					print("Job has exited, 'done' file has been created")
+					print("Removing lockfile")
 					os.remove("lockfile")
 					exitedDirName = re.sub("decrypted", "JobFinished", cwd)
 					os.rename(cwd, exitedDirName)
-					print "Work directory has been renamed from " + os.basename(cwd) + " to " + exitedDirName
-					print "Job finished successfully!"
+					print("Work directory has been renamed from " + os.basename(cwd) + " to " + exitedDirName)
+					print("Job finished successfully!")
 					break
 				else:
-					print "File is not the same, did the decryption fail? Exiting"
+					print("File is not the same, did the decryption fail? Exiting")
 					quit()
 					# Go back to the decryption step here?
 
 		elif configYml[0]["filecopied"] == "False" and configYml[0]["decrypting"] == "True":
-			print "File decryption has started, files have not been transferred, waiting"
+			print("File decryption has started, files have not been transferred, waiting")
 			break
 
 # This gets executed when the jobtype is schizophrenia and the filecopied field is False in the config file
 elif configYml[0]["jobtype"] == "schizophrenia" and configYml[0]["filecopied"] == "False":
-	print "Test"
+	print("Test scz run job")
