@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
 
 import re
 import os
@@ -11,15 +11,15 @@ from paramiko import SSHClient, RSAKey
 from scp import SCPClient
 from shutil import copy
 from datetime import datetime
-from ConfigYml import ConfigYml
+from configYml import configYml
 
-from Constants import YAML_FILENAME, BASEPATH, SCHIZOPHRENIA, ENCRYPTED_INPUT
+from constants import yamlFileName, basePath, schizophrenia, encryptedInput
 
 def submitJob(args):
 	# if statements that decide if the config file will define an imputation or schizophrenia job
-	if args.jobtype == "imputation":
+	if args.jobType == "imputation":
 		# Open the config file
-		with open(YAML_FILENAME) as f:
+		with open(yamlFileName) as f:
 			configYml = yaml.load(f, Loader=yaml.FullLoader)
 		# Open,close, read file and calculate md5sum on its contents
 		vcf = os.path.abspath(args.vcf)
@@ -32,14 +32,14 @@ def submitJob(args):
 
 		# Encrypt input file
 		print("Encrypting file")
-		pubkey = os.path.abspath(args.pubkey)
-		seckey = os.path.abspath(args.seckey)
-		inputBasename = os.path.basename(vcf)
-		encryptedInput = inputBasename + '.c4gh'
-		encrInDir = os.path.abspath("encrypted-" + re.sub('\.vcf.gz$', '', inputBasename))
+		pubKey = os.path.abspath(args.pubKey)
+		secKey = os.path.abspath(args.secKey)
+		inputBaseName = os.path.basename(vcf)
+		encryptedInput = inputBaseName + '.c4gh'
+		encrInDir = os.path.abspath("encrypted-" + re.sub('\.vcf.gz$', '', inputBaseName))
 		os.mkdir(encrInDir)
 		os.chdir(encrInDir)
-		encrypt = "crypt4gh encrypt --sk " + seckey + " --recipient_pk " + pubkey + " < " + vcf + " > " + encryptedInput
+		encrypt = "crypt4gh encrypt --sk " + secKey + " --recipient_pk " + pubKey + " < " + vcf + " > " + encryptedInput
 		subprocess.call(encrypt, shell=True)
 		print("Input file has been encrypted")
 
@@ -51,32 +51,32 @@ def submitJob(args):
 			encryptedMd5Returned = hashlib.md5(data).hexdigest()
 
 		# Add imputation specific lines to the config.yml file
-		configYml[0]["inputfile"] = os.path.basename(vcf)
-		configYml[0]["jobtype"] = args.jobtype
+		configYml[0]["inputFile"] = os.path.basename(vcf)
+		configYml[0]["jobType"] = args.jobType
 		configYml[0]["country"] = args.country
 		configYml[0]["md5sum"] = md5Returned
-		configYml[0]["encryptedmd5sum"] = encryptedMd5Returned
-		configYml[0]["filecopied"] = "False"
+		configYml[0]["encrMd5sum"] = encryptedMd5Returned
+		configYml[0]["fileCopied"] = "False"
 		configYml[0]["decrypting"] = "False"
-		configYml[0]["encryptedinput"] = encryptedInput
+		configYml[0]["encryptedInput"] = encryptedInput
 
 		# Write changes to the config.yml file
-		with open(os.path.join(encrInDir, YAML_FILENAME), "w") as f:
+		with open(os.path.join(encrInDir, yamlFileName), "w") as f:
 			yaml.dump(configYml, f, default_flow_style=False)
 
 	# Add schizophrenia specific lines to the config.yml file
-	elif args.jobtype == SCHIZOPHRENIA:
-		configYml = ConfigYml(YAML_FILENAME)
+	elif args.jobType == schizophrenia:
+		configYml = configYml(yamlFileName)
 		configYml.initFromArgs(args)
 
-		encryptedConfig = encryptFile(os.path.abspath(args.sczconfig), os.path.abspath(args.pubkey), os.path.abspath(args.seckey))
+		encryptedConfig = encryptFile(os.path.abspath(args.sczConfig), os.path.abspath(args.pubKey), os.path.abspath(args.secKey))
 		encrInDir = os.path.abspath("encrypted-" + datetime.now().strftime('%Y-%m-%d-%H:%M:%S'))
 		os.mkdir(encrInDir)
 		copy(encryptedConfig, encrInDir)
 
-		configYml.setValue(ENCRYPTED_INPUT, encryptedConfig)
+		configYml.setValue(encryptedInput, encryptedConfig)
 
-		configYml.dumpYAML(os.path.join(encrInDir, YAML_FILENAME))
+		configYml.dumpYAML(os.path.join(encrInDir, yamlFileName))
 
 	# Run scp to copy the file
 	transferFiles(encrInDir)
@@ -93,17 +93,17 @@ def transferFiles(inputFolder):
 
 	# Do the actual file transfer
 	print("Transferring files")
-	scp.put([inputFolder], remote_path=BASEPATH, recursive=True)
+	scp.put([inputFolder], remote_path=basePath, recursive=True)
 	scp.close()
 
 
-def encryptFile(filePath, pubkey, seckey):
+def encryptFile(filePath, pubKey, secKey):
 	# Encrypt input file
 	print("Encrypting file")
-	inputBasename = os.path.basename(filePath)
-	encryptedInput = inputBasename + '.c4gh'
+	inputBaseName = os.path.basename(filePath)
+	encryptedInput = inputBaseName + '.c4gh'
 
-	encrypt = "crypt4gh encrypt --sk " + seckey + " --recipient_pk " + pubkey + " < " + filePath + " > " + encryptedInput
+	encrypt = "crypt4gh encrypt --sk " + secKey + " --recipient_pk " + pubKey + " < " + filePath + " > " + encryptedInput
 	subprocess.call(encrypt, shell=True)
 	#TODO check if encrypting was completed succesfully
 	print("Input file has been encrypted")
@@ -119,17 +119,17 @@ def main():
 	parser = argparse.ArgumentParser(description='Define job parameters for query submission')
 	parser.add_argument('--vcf', type=str, action='store',
 						help='VCF file for imputation job submission')
-	parser.add_argument('--jobtype', type=str, action='store',
+	parser.add_argument('--jobType', type=str, action='store',
 						help='Define job type, imputation and schizophrenia are valid')
 	parser.add_argument('--country', type=str, action='store',
 						help='Define in which country to run the job or jobs')
-	parser.add_argument('--scriptid', type=str, action='store',
+	parser.add_argument('--scriptId', type=str, action='store',
 						help='Define what script to run (for schizophrenia use case)')
-	parser.add_argument('--pubkey', type=str, action='store',
+	parser.add_argument('--pubKey', type=str, action='store',
 						help='Supply the public key for encryption of input file')
-	parser.add_argument('--seckey', type=str, action='store',
+	parser.add_argument('--secKey', type=str, action='store',
 						help='Supply the public key for encryption of input file')
-	parser.add_argument('--sczconfig', type=str, action='store',
+	parser.add_argument('--sczConfig', type=str, action='store',
 						help='Schizophrenia config/parameters file')
 
 	args = parser.parse_args()
