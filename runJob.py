@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
 
 import re
 import docker
@@ -12,23 +12,23 @@ import os
 import datetime
 from glob import glob
 
-from Constants import YAML_FILENAME, BASEPATH
+from constants import yamlFileName, basePath
 
 # TODO Put this path in a separate config file?
 imputationserver = "/home/ubuntu/imputeDisk/01-workspace/00-temp/imputationserver"
-bifrost = "/home/ubuntu/imputeDisk/01-workspace/00-temp/Bifrost"
-searchpath = glob(os.path.join(BASEPATH, "encrypted-*"))
+bifrost = "/home/ubuntu/imputeDisk/01-workspace/00-temp/ifrostScz/Bifrost"
+searchPath = glob(os.path.join(basePath, "decrypted-*"))
 
-# Setting current work directory to the "next one" that gets globbed when the searchpath variable is created
+# Setting current work directory to the "next one" that gets globbed when the searchPath variable is created
 # No fancy job prioritization is done
 i = 0
-for dir in searchpath:
+for dir in searchPath:
 	if os.path.isfile(dir + "/lockfile"):
 		print(dir + " has a lockfile, a job is running, exiting now.")
 		quit()
 
-print("No job is running, will process data in " + searchpath[0] + ", creating lockfile and attempting to start job.")
-cwd = searchpath[0] + "/"
+print("No job is running, will process data in " + searchPath[0] + ", creating lockfile and attempting to start job.")
+cwd = searchPath[0] + "/"
 os.chdir(cwd)
 
 # Create lockfile
@@ -44,25 +44,25 @@ outputs = cwd + "outputs"
 
 # Load the config file
 try:
-	with open(YAML_FILENAME) as file:
+	with open(yamlFileName) as file:
 		configYml = yaml.load(file, Loader=yaml.FullLoader)
 # Print error message if file is not found
 except IOError:
 	print("Config file not found, exiting")
 	quit()
 
-# If statements that runs the imputation job when the filecopied field is False in the config file
-if configYml[0]["jobtype"] == "imputation":
+# If statements that runs the imputation job when the fileCopied field is False in the config file
+if configYml[0]["jobType"] == "imputation":
 	# While loop that runs until job is successful or fails
 	while True:
-		if configYml[0]["filecopied"] == "True" and configYml[0]["decrypting"] == "True":
+		if configYml[0]["fileCopied"] == "True" and configYml[0]["decrypting"] == "True":
 			# Put the encrypted input file in a variable
-			inputfile = configYml[0]["inputfile"]
+			inputFile = configYml[0]["inputFile"]
 
 			# Verify that the file exists on disk
 			try:
 #				print "Checking for encrypted input file"
-				f = open(inputfile)
+				f = open(inputFile)
 #				print "Found encrypted input file"
 			# Print error message if file is not found
 			except IOError:
@@ -72,7 +72,7 @@ if configYml[0]["jobtype"] == "imputation":
 				f.close()
 
 			# Calculate md5sum
-			with open(inputfile) as fileToCheck:
+			with open(inputFile) as fileToCheck:
 				# TODO make this into a function
 				# Read contents of the file into variable
 				print("Loading decrypted input file")
@@ -88,8 +88,8 @@ if configYml[0]["jobtype"] == "imputation":
 					# TODO make this into a function
 					print("File integrity is intact")
 					print("Splitting vcf by chromosome")
-					print(cwd + inputfile)
-					split = bifrost + "/splitByChromosome.sh " + cwd + inputfile + " " + imputationserver + "/apps/imputationserver/1.2.7/bin/tabix " + imputationserver + "/apps/imputationserver/1.2.7/bin/bgzip"
+					print(cwd + inputFile)
+					split = bifrost + "/splitByChromosome.sh " + cwd + inputFile + " " + imputationserver + "/apps/imputationserver/1.2.7/bin/tabix " + imputationserver + "/apps/imputationserver/1.2.7/bin/bgzip"
 					print(split)
 					subprocess.call(split, shell=True)
 					print("Finished splitting vcf file by chromosome")
@@ -135,10 +135,10 @@ if configYml[0]["jobtype"] == "imputation":
 					quit()
 					# Go back to the decryption step here?
 
-		elif configYml[0]["filecopied"] == "False" and configYml[0]["decrypting"] == "True":
+		elif configYml[0]["fileCopied"] == "False" and configYml[0]["decrypting"] == "True":
 			print("File decryption has started, files have not been transferred, waiting")
 			break
 
-# This gets executed when the jobtype is schizophrenia and the filecopied field is False in the config file
-elif configYml[0]["jobtype"] == "schizophrenia" and configYml[0]["filecopied"] == "False":
+# This gets executed when the jobType is schizophrenia and the fileCopied field is False in the config file
+elif configYml[0]["jobType"] == "schizophrenia" and configYml[0]["fileCopied"] == "False":
 	print("Test scz run job")

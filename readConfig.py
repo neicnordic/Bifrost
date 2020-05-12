@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
 
 from glob import glob
 import re
@@ -9,32 +9,32 @@ from shutil import copyfile, copy
 import os
 import datetime
 
-from Constants import YAML_FILENAME, BASEPATH, REMOTE_PRIVATE_KEY_PATH, INPUT_FILE, JOBTYPE, COUNTRY, MD5_SUM, ENCR_MD5_SUM, FILE_COPIED, DECRYPTING, \
-    ENCRYPTED_INPUT, SCRIPT_ID, SCHIZOPHRENIA
+from constants import yamlFileName, basePath, remotePrivateKeyPath, inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting, \
+    encryptedInput, scriptId, schizophrenia
 
 now = str(datetime.datetime.now())[:19]
 now = now.replace(":","_")
 now = now.replace(" ","-")
 
 def decryptFile(configYml, inputFolder, yml):
-	encryptedFile = os.path.join(inputFolder, configYml.getValue(ENCRYPTED_INPUT))
+	encryptedFile = os.path.join(inputFolder, configYml.getValue(encryptedInput))
 	# Verify that the file exists on disk
 	if not os.path.isfile(encryptedFile):
 		print("Encrypted file " + encryptedFile + " not found, exiting")
 		quit()
 
 	# Change config file decrypting status to true
-	print("Decrypting " + configYml.getValue(ENCRYPTED_INPUT))
+	print("Decrypting " + configYml.getValue(encryptedInput))
 
-	# configYml.setValue(DECRYPTING) = "True"
+	# configYml.setValue(decrypting) = "True"
 	# configYml.dumpYAML(yml)
 
 	decryptedFilePath = os.path.join(inputFolder,
-									 os.path.splitext(configYml.getValue(ENCRYPTED_INPUT))[0])
+									 os.path.splitext(configYml.getValue(encryptedInput))[0])
 	# Decrypt file with crypt4gh
 	# TODO Make this as general and easy as possible to configure
 	# TODO Make the script exit if the decryption fails with the "No supported encryption method" error message, this means that the sender had the wrong public key during encryption before sending the file
-	decrypt = "crypt4gh decrypt --sk " + REMOTE_PRIVATE_KEY_PATH + " < " + encryptedFile + " > " + decryptedFilePath
+	decrypt = "crypt4gh decrypt --sk " + remotePrivateKeyPath + " < " + encryptedFile + " > " + decryptedFilePath
 
 	subprocess.call(decrypt, shell=True)
 	print("Done decrypting")
@@ -55,17 +55,17 @@ def decryptFile(configYml, inputFolder, yml):
 
 
 def main():
-	searchpath = glob(os.path.join(BASEPATH, "encrypted-*"))
-	if len(searchpath) >= 1:
+	searchPath = glob(os.path.join(basePath, "encrypted-*"))
+	if len(searchPath) >= 1:
 		print("Found directory with encrypted data")
 	else:
 		print("No directory with encrypted data found, exiting")
 		quit()
 
-	copydest = re.sub("encrypted", "decrypted", searchpath[0])
+	copydest = re.sub("encrypted", "decrypted", searchPath[0])
 	copydest = os.path.abspath(copydest) + "/"
 
-	yamlConfigPath = os.path.join(searchpath[0], YAML_FILENAME)
+	yamlConfigPath = os.path.join(searchPath[0], yamlFileName)
 	# Load the config file
 	try:
 		with open(yamlConfigPath) as file:
@@ -75,12 +75,12 @@ def main():
 		print("Config file not found, nothing to do, exiting")
 		quit()
 
-	# If statements that runs the imputation job when the filecopied field is False in the config file
-	if configYml[0]["jobtype"] == "imputation":
+	# If statements that runs the imputation job when the fileCopied field is False in the config file
+	if configYml[0]["jobType"] == "imputation":
 		while True:
-			if configYml[0]["filecopied"] == "False" and configYml[0]["decrypting"] == "False":
+			if configYml[0]["fileCopied"] == "False" and configYml[0]["decrypting"] == "False":
 				# Put the encrypted input file in a variable with absolute path added
-				encryptedFile = searchpath[0] + "/" + configYml[0]["encryptedinput"]
+				encryptedFile = searchPath[0] + "/" + configYml[0]["encryptedInput"]
 
 				# Verify that the file exists on disk
 				try:
@@ -94,7 +94,7 @@ def main():
 					print("Finished calculating md5sum on encrypted input file")
 
 					# Compare md5sum and copy files to the scratch disk if the md5sum is intact after decryption
-					if configYml[0]["encryptedmd5sum"] == md5Returned:
+					if configYml[0]["encrMd5sum"] == md5Returned:
 						print("md5sum on encrypted input file is correct, proceeding.")
 					else:
 						print(
@@ -109,7 +109,7 @@ def main():
 					f.close()
 
 				# Change config file decrypting status to true
-				print("Decrypting " + configYml[0]["encryptedinput"])
+				print("Decrypting " + configYml[0]["encryptedInput"])
 				configYml[0]["decrypting"] = "True"
 				with open(yamlConfigPath, "w") as f:
 					yaml.dump(configYml, f, default_flow_style=False)
@@ -118,12 +118,12 @@ def main():
 				# TODO Make this as general and easy as possible to configure
 				# TODO Make the script exit if the decryption fails with the "No supported encryption method" error message, this means that the sender had the wrong public key during encryption before sending the file
 				decrypt = "/usr/local/bin/crypt4gh decrypt --sk /home/ubuntu/.c4gh/nrec.sec < " + encryptedFile + " > " + \
-						  searchpath[0] + "/" + configYml[0]["inputfile"]
+						  searchPath[0] + "/" + configYml[0]["inputFile"]
 				subprocess.call(decrypt, shell=True)
 				print("Done decrypting")
 
 				# Put the input file in a variable with absolute path added
-				decryptedFile = searchpath[0] + "/" + configYml[0]["inputfile"]
+				decryptedFile = searchPath[0] + "/" + configYml[0]["inputFile"]
 
 				# Verify that the input file exists on disk
 				try:
@@ -175,27 +175,27 @@ def main():
 								if configYml[0]["md5sum"] == md5Returned:
 									# TODO make this into a function
 									# Delete input file after copying it to the scratch disk
-									print("Removing " + decryptedFile + " and " + searchpath[
-										0] + "/" + configYml[0]["encryptedinput"])
+									print("Removing " + decryptedFile + " and " + searchPath[
+										0] + "/" + configYml[0]["encryptedInput"])
 									os.remove(decryptedFile)
-									os.remove(searchpath[0] + "/" + configYml[0]["encryptedinput"])
-									print("Deleted " + decryptedFile + " and " + searchpath[
+									os.remove(searchPath[0] + "/" + configYml[0]["encryptedInput"])
+									print("Deleted " + decryptedFile + " and " + searchPath[
 										0] + "/" + configYml[0][
-											  "encryptedinput"] + " after transfer to scratch disk")
+											  "encryptedInput"] + " after transfer to scratch disk")
 
 									# Copy yaml file to the scratch disk
 									copyfile(yamlConfigPath, copydest + os.path.basename(yamlConfigPath))
 									print("Copied yaml file to " + copydest + os.path.basename(
 										yamlConfigPath))
 
-									# Set the "filecopied" field to "True" so that the file does not get copied forever by the cron job
-									configYml[0]["filecopied"] = "True"
+									# Set the "fileCopied" field to "True" so that the file does not get copied forever by the cron job
+									configYml[0]["fileCopied"] = "True"
 									with open(copydest + os.path.basename(yamlConfigPath), "w") as f:
 										yaml.dump(configYml, f, default_flow_style=False)
 
 									# Delete config file after transferring it
 									os.remove(yamlConfigPath)
-									os.rmdir(searchpath[0])
+									os.rmdir(searchPath[0])
 									print("Deleted config file after transfer to scratch disk")
 									print("All done!")
 									break
@@ -204,27 +204,27 @@ def main():
 									print("File transfer failed, retrying")
 									# Copy the file to the scratch disk
 									print("Copying decrypted input files to " + copydest)
-									copyfile(inputfile, copydest + os.path.basename(inputfile))
+									copyfile(inputFile, copydest + os.path.basename(inputFile))
 									print("Copied input file to " + copydest + os.path.basename(
-										inputfile))
+										inputFile))
 					else:
 						print("File is not the same, did the decryption fail? Exiting")
 				# Probably go back to the decryption step here
 
-			elif configYml[0]["filecopied"] == "False" and configYml[0]["decrypting"] == "True":
+			elif configYml[0]["fileCopied"] == "False" and configYml[0]["decrypting"] == "True":
 				print("File decryption has started, files have not been transferred, waiting")
 				break
 
-			elif configYml[0]["filecopied"] == "True" and configYml[0]["decrypting"] == "True":
+			elif configYml[0]["fileCopied"] == "True" and configYml[0]["decrypting"] == "True":
 				break
 
-	# This gets executed when the jobtype is schizophrenia and the filecopied field is False in the config file
+	# This gets executed when the jobType is schizophrenia and the fileCopied field is False in the config file
 	else:
-		configYml = ConfigYml(yamlConfigPath)
-		if configYml.getValue(JOBTYPE) == SCHIZOPHRENIA and configYml.getValue(FILE_COPIED) == "False":
+		configYml = configYml(yamlConfigPath)
+		if configYml.getValue(jobType) == schizophrenia and configYml.getValue(fileCopied) == "False":
 			print("Test scz")
-			inputFolder = searchpath[0]
-			if configYml.getValue(FILE_COPIED) == "False" and configYml.getValue(DECRYPTING) == "False":
+			inputFolder = searchPath[0]
+			if configYml.getValue(fileCopied) == "False" and configYml.getValue(decrypting) == "False":
 				decryptedFilePath = decryptFile(configYml, inputFolder, yamlConfigPath)
 
 				if not os.path.isdir(copydest):
@@ -234,22 +234,22 @@ def main():
 				print("Copying decrypted input files to " + copydest)
 				copy(decryptedFilePath, copydest)
 
-				# print("Removing " + decryptedFile + " and " + searchpath[0] + "/" + configYml[0]["encryptedinput"])
+				# print("Removing " + decryptedFile + " and " + searchPath[0] + "/" + configYml[0]["encryptedInput"])
 				# os.remove(decryptedFile)
-				# os.remove(searchpath[0] + "/" + configYml[0]["encryptedinput"])
-				# print("Deleted " + decryptedFile + " and " + searchpath[0] + "/" + configYml[0]["encryptedinput"] + " after transfer to scratch disk")
+				# os.remove(searchPath[0] + "/" + configYml[0]["encryptedInput"])
+				# print("Deleted " + decryptedFile + " and " + searchPath[0] + "/" + configYml[0]["encryptedInput"] + " after transfer to scratch disk")
 
 				# Copy yaml file to the scratch disk
 				copy(yamlConfigPath, copydest)
 				print("Copied yaml file to " + copydest)
 
-				# Set the "filecopied" field to "True" so that the file does not get copied forever by the cron job
-				# configYml.setValue(FILE_COPIED) = "True"
+				# Set the "fileCopied" field to "True" so that the file does not get copied forever by the cron job
+				# configYml.setValue(fileCopied) = "True"
 				# configYml.dumpYAML(copydest, os.path.basename(yamlConfigPath))
 
 				# Delete config file after transferring it
 				# os.remove(yml)
-				# os.rmdir(searchpath[0])
+				# os.rmdir(searchPath[0])
 				# print("Deleted config file after transfer to scratch disk")
 				print("All done!")
 

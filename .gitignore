@@ -1,4 +1,3 @@
 README.html
-inputFile.vcf
-inputFile.vcf.bak
-testing-dir
+__pycache__/
+constants.pyc 
