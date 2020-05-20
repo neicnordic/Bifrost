@@ -8,6 +8,7 @@ import hashlib
 from shutil import copyfile, copy
 import os
 import datetime
+from ConfigYml import ConfigYml
 
 from constants import yamlFileName, basePath, remotePrivateKeyPath, inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting, \
     encryptedInput, scriptId, schizophrenia
@@ -220,7 +221,7 @@ def main():
 
 	# This gets executed when the jobType is schizophrenia and the fileCopied field is False in the config file
 	else:
-		configYml = configYml(yamlConfigPath)
+		configYml = ConfigYml(yamlConfigPath)
 		if configYml.getValue(jobType) == schizophrenia and configYml.getValue(fileCopied) == "False":
 			print("Test scz")
 			inputFolder = searchPath[0]

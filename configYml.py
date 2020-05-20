@@ -8,7 +8,7 @@ allowedNames = [inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, dec
                 encryptedInput, scriptId]
 
 
-class configYml():
+class ConfigYml():
 
     def __init__(self, path):
         with open(path) as f:
