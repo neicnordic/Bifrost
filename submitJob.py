@@ -11,7 +11,7 @@ from paramiko import SSHClient, RSAKey
 from scp import SCPClient
 from shutil import copy
 from datetime import datetime
-from configYml import configYml
+from ConfigYml import ConfigYml
 
 from constants import yamlFileName, basePath, schizophrenia, encryptedInput
 
@@ -54,7 +54,7 @@ def submitJob(args):
 
 	# Add schizophrenia specific lines to the config.yml file
 	elif args.jobType == schizophrenia:
-		configYml = configYml(yamlFileName)
+		configYml = ConfigYml(yamlFileName)
 		configYml.initFromArgs(args)
 
 		encryptedConfig = encryptFile(os.path.abspath(args.sczConfig), os.path.abspath(args.pubKey), os.path.abspath(args.secKey))
