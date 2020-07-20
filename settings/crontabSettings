@@ -22,4 +22,7 @@
 # m h  dom mon dow   command
 
 # Run script once per minute
-*/1 * * * * /path/to/Bifrost/readConfig.py >> ~/readConfig.log
+BIFROST=/net/tsd-evs.tsd.usit.no/p1054/data/durable/BifrostWork/Bifrost
+#*/1 * * * * $BIFROST/scripts/updater.sh 2>&1>> $BIFROST/logs/updater.log
+#*/1 * * * * $BIFROST/scripts/readConfig.py 2>&1>> $BIFROST/logs/readConfig.log
+#*/1 * * * * $BIFROST/scripts/runJob.py 2>&1>> $BIFROST/logs/runJob.log

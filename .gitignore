@@ -1,4 +1,3 @@
-README.html
-__pycache__/
-*.pyc
-*.c4gh
+*/*.pyc
+logs/*.log
+*.html
