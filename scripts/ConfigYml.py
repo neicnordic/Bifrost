@@ -2,10 +2,10 @@
 import yaml
 
 from constants import inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting, \
-    encryptedInput, scriptId, schizophrenia
+    encryptedInputLabel, scriptId, schizophrenia
 
 allowedNames = [inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting,
-                encryptedInput, scriptId]
+                encryptedInputLabel, scriptId]
 
 
 class ConfigYml():
