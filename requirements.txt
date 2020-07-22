@@ -1,5 +1,1 @@
-paramiko
-scp
 pyyaml
-docker
-crypt4gh
