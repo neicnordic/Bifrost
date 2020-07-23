@@ -11,7 +11,7 @@ from shutil import copy
 from datetime import datetime
 from ConfigYml import ConfigYml
 
-from constants import yamlFileName, basePath, schizophrenia, encryptedInput
+from constants import yamlFileName, basePath, schizophrenia, encryptedInputLabel
 
 def submitJob(args):
 	# if statements that decide if the config file will define an imputation or schizophrenia job
@@ -64,15 +64,16 @@ def submitJob(args):
 
 	# Add schizophrenia specific lines to the config.yml file
 	elif args.jobType == schizophrenia:
-		configYml = configYml(yamlFileName)
+		configYml = ConfigYml(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'settings', yamlFileName))
 		configYml.initFromArgs(args)
 
-		encryptedConfig = encryptFile(os.path.abspath(args.sczConfig), os.path.abspath(args.pubKey), os.path.abspath(args.secKey))
-		encrInDir = os.path.abspath("encrypted-" + datetime.now().strftime('%Y-%m-%d-%H:%M:%S'))
+		encryptedConfig = encryptFile(os.path.abspath(args.sczConfig), os.path.abspath(args.personalPubKey), os.path.abspath(args.personalSecKey))
+		encrInDir = os.path.abspath("unprocessed-" + datetime.now().strftime('%Y-%m-%d-%H:%M:%S'))
 		os.mkdir(encrInDir)
 		copy(encryptedConfig, encrInDir)
+		copy(args.personalPubKey, encrInDir)
 
-		configYml.setValue(encryptedInput, encryptedConfig)
+		configYml.setValue(encryptedInputLabel, encryptedConfig)
 
 		configYml.dumpYAML(os.path.join(encrInDir, yamlFileName))
 
@@ -95,18 +96,9 @@ def encryptFile(filePath, remotePubKey, personalSecKey):
 
 
 def transferFiles(inputFolder):
-	ssh = SSHClient()
-	ssh.load_system_host_keys()
-	#key = RSAKey.from_private_key_file("/Users/radmilko/.ssh/id_rsa", '')
-	#ssh.connect('158.39.77.181', username="centos", pkey=key)
-	ssh.connect('bifrost', username="ubuntu")
-
-	scp = SCPClient(ssh.get_transport(), progress=progress)
-
-	# Do the actual file transfer
-	print("Transferring files")
-	scp.put([inputFolder], remote_path=basePath, recursive=True)
-	scp.close()
+	s3dest = "s3://bifrost-inputs"
+	s3command = "tsd-s3cmd put --recursive " + inputFolder + " " + s3dest
+	subprocess.call(s3command, shell=True)
 
 # SCPCLient takes a paramiko transport as an argument
 def progress(filename, size, sent):
