@@ -33,44 +33,43 @@ Change directories to it:
 Then run the imputation server once to install the imputation server application, and a reference panel that is useful for testing purposes, with this command:
 `docker run -d -p 8080:80 -v $(pwd):/data/ genepi/imputationserver:v1.2.7`
 
-Starting the web server takes about a minute, when it's up and running you reach it by going to "hostIp:8080", the default admin username is admin and the password is admin1978. Start a test job with one of the test files that comes with the imputation server to verify that the imputation application and hapmap reference panels have been installed properly. Once everything works as it should you can remove the imputation server container.
-
-Now that you know that the imputation server runs as it should you can run `cd ..` and then `zip -r imputationserver.1.2.7.zip imputationserver` to make a zip archive that you will upload to TSD.
+Starting the web server takes about a minute, when it's up and running you reach it by going to "localhost:8080", the default admin username is admin and the password is admin1978. Start a test job with one of the test files that comes with the imputation server to verify that the imputation application and hapmap reference panels have been installed properly. Once everything works as it should you can shut down the imputation server container.
 
 Save the imputation docker image as a tar file with this command:  
 `docker save -o imputationserver.v1.2.7.tar genepi/imputationserver:v1.2.7`  
 
-Now you can upload the imputation server zip file and docker image tar file with the [TSD data portal](https://data.tsd.usit.no/index.html).
+Now that you know that the imputation server runs as it should and you have saved the imputation server docker image as a tar file, you can run `cd ..` and then upload the imputation server directory with the tsd s3 tool: `tsd-s3cmd sync imputationserver s3://imputationserver`
 
 Log into TSD and change directories to `/tsd/p1054/data/durable/BifrostWork`
 
-Unzip the imputation server:  
-`unzip /tsd/p1054/data/durable/file-import/p1054-member-group/imputationserver.1.2.7.zip`
+Use rsync to make a copy of the imputation server:  
+`rsync --progress -ah /tsd/p1054/data/durable/s3-api/imputationserver .`  
+**NB:** Remember to not add a trailing `/` in the rsync command or you will copy the **contents** of the directory rather than the directory itself.
 
 Then cd into the directory:  
 `cd imputationserver`
 
-Copy the docker tar archive to your current directory:  
-`cp /tsd/p1054/data/durable/file-import/p1054-member-group/imputationserver.v1.2.7.tar .`
-
 Now load the docker container with the following command:  
 `sudo -u tsdfx-p1054 docker load -i imputationserver.v1.2.7.tar`  
 **NB:** You need special permission to load docker images, contact TSD support to sort this out.
+
+The final step before you can test the imputation server is to run `chmod -R 777 database apps hadoop`, otherwise it won't run as it should.
 
 Now you can start the imputation server like so:  
 `sudo -u tsdfx-p1054 docker run --rm -d -v $(pwd):/data -p 8080:80 genepi/imputationserver:v1.2.7`
 
 Starting the web server takes about a minute, when it's up and running you reach it by going to "hostIp:8080", the default admin username is admin and the password is admin1978.
 
+### Installing the HRC 1.1 reference panel
 Now you navigate to the admin "settings" panel and go to "applications". You will come back to this page once you have performed the following steps:  
 
-* Change directories: `cd /tsd/p1054/data/durable/oskar/hrc1.1`
+* Change directories: `cd /tsd/p1054/data/durable/oskar/HRC1.1-processed`
 * Start a python web server in this directory: `python3 -m http.server`
 * Go to "hostIp:8000" with a web browser and verify that you can see the `hrc1.1.zip` file.
-* Go back to the imputation server admin settings panel
+* Go back to the imputation server admin settings panel  
+**NB**: The imputation server does not support installing reference panels from local directories which is why we must run a web server to host the zip file for us.  
 
 Now that we have started a web server that hosts our reference panel, we can finally install it.  
-**NB**: The imputation server does not support installing reference panels from local directories which is why we must run a web server to host the zip file for us.  
 
 Follow the [official installation instructions](https://github.com/genepi/imputationserver-docker#install-a-new-reference-panel) to install the reference panel.
 

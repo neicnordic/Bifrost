@@ -20,7 +20,7 @@ The name Bifrost (pronounced Biv-rost) comes from the old Norse mythology and is
     - If your input file name is `nameOfInputFile.vcf.gz`, your output files will be located in `/tsd/p1054/data/durable/BifrostWork/bifrost-scratch/JobFinished-nameOfTheInputFile/outputs`.  
 * It is up to you, the user, to encrypt the output files before you can download them from TSD, a future release will automatically encrypt the output files with your personal crypt4gh public key and the TSD crypt4gh secret key.  
 * An imputation job takes about 100 hours to finish, an R cohort job takes mere minutes to complete once it has started, starting a job may take up to 30 minutes if there are no other jobs in the queue.  
-    - Only one job can run at a time, if an imputation job is running it will take up too 100 hours before the next job can start.
+    - Only one job can run at a time, if an imputation job is running it will take up to 100 hours before the next job can start.
 
 ## End user instructions  
 ### Dependencies
@@ -76,4 +76,4 @@ Now that all this is done you can hit enter to run the command, you now need to 
 This will be described once the code for it is ready.
 
 ## Developer documentation
-To set Bifrost up on TSD from scratch, follow [these instructions](docs/technicalDocumentation).
+To set Bifrost up on TSD from scratch, follow [these instructions](docs/technicalDocumentation.md).
