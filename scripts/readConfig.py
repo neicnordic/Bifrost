@@ -113,7 +113,7 @@ def imputation(yamlConfigPath, dir):
 			print(encryptedFile)
 
 			# Copy pubkey to the scratch disk
-			pubKey = os.path.join(searchPath[0], configYml[0]["pubKey"])
+			pubKey = os.path.join(dir, configYml[0]["pubKey"])
 			print("Copying public key to " + copyDest)
 			copyfile(pubKey, copyDest + os.path.basename(pubKey))
 			pubKey = os.path.join(copyDest, os.path.basename(pubKey))

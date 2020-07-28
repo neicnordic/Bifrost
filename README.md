@@ -50,34 +50,34 @@ Navigate to the Bifrost directory:
 `cd Bifrost`
 
 To run an imputation job we begin building the command by writing:  
-`./submitJob.py --jobType imputation`
+`./scripts/submitJob.py --jobType imputation`
 
 Now locate your encrypted input file, let's assume it's at:  
 `/home/username/inputFiles/dataToImpute.vcf.gz.c4gh`
 
 Now you can write:  
-`./submitJob.py --jobType imputation --vcf /home/username/inputFiles/dataToImpute.vcf.gz.c4gh`
+`./scripts/submitJob.py --jobType imputation --vcf /home/username/inputFiles/dataToImpute.vcf.gz.c4gh`
 
 Then you select which country to run in, currently it is only possible to run in Norway, so you therefore select country as such:  
-`./submitJob.py --jobType imputation --vcf /home/username/inputFiles/dataToImpute.vcf.gz.c4gh --country Norway`
+`./scripts/submitJob.py --jobType imputation --vcf /home/username/inputFiles/dataToImpute.vcf.gz.c4gh --country Norway`
 
 Next we add the TSD public encryption key like this:  
-`./submitJob.py --jobType imputation --vcf /home/username/inputFiles/dataToImpute.vcf.gz.c4gh --country Norway --remotePubKey /home/username/path/to/TSD.pub`
+`./scripts/submitJob.py --jobType imputation --vcf /home/username/inputFiles/dataToImpute.vcf.gz.c4gh --country Norway --remotePubKey /home/username/path/to/TSD.pub`
 
 Then supply your personal secret encryption key, the one you generated with the `crypt4gh-keygen` tool earlier:  
-`./submitJob.py --jobType imputation --vcf /home/username/inputFiles/dataToImpute.vcf.gz.c4gh --country Norway --remotePubKey /home/username/path/to/TSDPubKey.pub --personalSecKey /home/username/path/to/mySecretKey.sec`
+`./scripts/submitJob.py --jobType imputation --vcf /home/username/inputFiles/dataToImpute.vcf.gz.c4gh --country Norway --remotePubKey /home/username/path/to/TSDPubKey.pub --personalSecKey /home/username/path/to/mySecretKey.sec`
 
 The last step is to supply your personal public key:  
-`./submitJob.py --jobType imputation --vcf /home/username/inputFiles/dataToImpute.vcf.gz.c4gh --country Norway --remotePubKey /home/username/path/to/TSDPubKey.pub --personalSecKey /home/username/path/to/mySecretKey.sec --personalPubKey /home/username/path/to/myPublicKey.pub`
+`./scripts/submitJob.py --jobType imputation --vcf /home/username/inputFiles/dataToImpute.vcf.gz.c4gh --country Norway --remotePubKey /home/username/path/to/TSDPubKey.pub --personalSecKey /home/username/path/to/mySecretKey.sec --personalPubKey /home/username/path/to/myPublicKey.pub`
 
 Now that all this is done you can hit enter to run the command, you now need to be ready to write your TSD username, password and one time password (OTP) to actually upload the files.  
 
 ### How to submit a schizophrenia R job  
-NB: The schizophrenia R job does not currently have a functionality to accept any parameters, so the meaning of following steps is only to test the submission and the job run.
+**NB**: The schizophrenia R job does not currently have a functionality to accept any parameters, so the meaning of following steps is only to test the submission and the job run.
 
 To submit the job (the sczConfig parameter accepts any text file, for now it only serves as a placeholder) : 
 
-`./submitJob.py --jobType schizophrenia --country Norway --scriptId 1 --personalPubKey /home/username/path/to/myPublicKey.pub  --personalSecKey /home/username/path/to/mySecretKey.sec --sczConfig ./test-input-file`
+`./scripts/submitJob.py --jobType schizophrenia --country Norway --scriptId 1 --remotePubKey /home/username/path/to/TSDPubKey.pub --personalPubKey /home/username/path/to/myPublicKey.pub --personalSecKey /home/username/path/to/mySecretKey.sec --sczConfig ./test-input-file`
 
 After starting this command, you now need to be ready to write your TSD username, password and one time password (OTP) to upload the files to TSD.  
 

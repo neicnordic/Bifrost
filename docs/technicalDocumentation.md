@@ -53,7 +53,7 @@ Now load the docker container with the following command:
 `sudo -u tsdfx-p1054 docker load -i imputationserver.v1.2.7.tar`  
 **NB:** You need special permission to load docker images, contact TSD support to sort this out.
 
-The final step before you can test the imputation server is to run `chmod -R 777 database apps hadoop`, otherwise it won't run as it should.
+The final step before you can test the imputation server is to run `chmod -R 777 database apps hadoop settings.yaml`, otherwise it won't run as it should.
 
 Now you can start the imputation server like so:  
 `sudo -u tsdfx-p1054 docker run --rm -d -v $(pwd):/data -p 8080:80 genepi/imputationserver:v1.2.7`
