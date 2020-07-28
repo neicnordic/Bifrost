@@ -73,7 +73,14 @@ The last step is to supply your personal public key:
 Now that all this is done you can hit enter to run the command, you now need to be ready to write your TSD username, password and one time password (OTP) to actually upload the files.  
 
 ### How to submit a schizophrenia R job  
-This will be described once the code for it is ready.
+NB: The schizophrenia R job does not currently have a functionality to accept any parameters, so the meaning of following steps is only to test the submission and the job run.
+
+To submit the job (the sczConfig parameter accepts any text file, for now it only serves as a placeholder) : 
+
+`./submitJob.py --jobType schizophrenia --country Norway --scriptId 1 --personalPubKey /home/username/path/to/myPublicKey.pub  --personalSecKey /home/username/path/to/mySecretKey.sec --sczConfig ./test-input-file`
+
+After starting this command, you now need to be ready to write your TSD username, password and one time password (OTP) to upload the files to TSD.  
+
 
 ## Developer documentation
 To set Bifrost up on TSD from scratch, follow [these instructions](docs/technicalDocumentation.md).
