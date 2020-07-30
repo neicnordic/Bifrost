@@ -13,7 +13,7 @@ import datetime
 from glob import glob
 from ConfigYml import ConfigYml
 
-from constants import yamlFileName, basePath, imputationserver, bifrost, encryptedInput, schizophrenia, scratch
+from constants import yamlFileName, basePath, imputationserver, bifrost, encryptedInputLabel, schizophrenia, scratch
 
 searchPath = glob(os.path.join(scratch, "decrypted-*"))
 
@@ -114,7 +114,7 @@ elif configYml[0]["jobType"] == "schizophrenia":
 	print("Test scz run job")
 	config = ConfigYml(yamlFileName)
 	#if configYml[0]["fileCopied"] == "True" and configYml[0]["decrypting"] == "True":
-	inputFilename = os.path.splitext(config.getValue(encryptedInput))[0]
+	inputFilename = os.path.splitext(config.getValue(encryptedInputLabel))[0]
 	print("Input filename: " + inputFilename)
 
 
