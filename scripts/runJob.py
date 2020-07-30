@@ -1,7 +1,6 @@
 #!/usr/bin/env python2.7
 
 import re
-import docker
 import sys
 import subprocess
 import yaml
@@ -13,7 +12,7 @@ import datetime
 from glob import glob
 from ConfigYml import ConfigYml
 
-from constants import yamlFileName, basePath, imputationserver, bifrost, encryptedInput, schizophrenia, scratch
+from constants import yamlFileName, basePath, imputationserver, bifrost, encryptedInputLabel, schizophrenia, scratch
 
 searchPath = glob(os.path.join(scratch, "decrypted-*"))
 
@@ -57,7 +56,7 @@ if configYml[0]["jobType"] == "imputation":
 	while True:
 		if configYml[0]["fileCopied"] == "True" and configYml[0]["decrypting"] == "True":
 			# Put the encrypted input file in a variable
-			inputFile = re.sub('\.c4gh$', '', configYml[0]["encryptedInput"])
+			inputFile = re.sub('\.c4gh$', '', configYml[0]["encryptedInputLabel"])
 
 			# Verify that the file exists on disk
 			try:
@@ -114,7 +113,7 @@ elif configYml[0]["jobType"] == "schizophrenia":
 	print("Test scz run job")
 	config = ConfigYml(yamlFileName)
 	#if configYml[0]["fileCopied"] == "True" and configYml[0]["decrypting"] == "True":
-	inputFilename = os.path.splitext(config.getValue(encryptedInput))[0]
+	inputFilename = os.path.splitext(config.getValue(encryptedInputLabel))[0]
 	print("Input filename: " + inputFilename)
 
 
