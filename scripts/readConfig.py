@@ -11,8 +11,8 @@ import datetime
 import errno
 from ConfigYml import ConfigYml
 
-from constants import yamlFileName, basePath, tsdSecretKeyPath, inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting, \
-    encryptedInput, scriptId, schizophrenia, crypt4gh, scratch, unprocessed
+from constants import yamlFileName, basePath, tsdSecretKeyPath, inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting,\
+	scriptId, schizophrenia, crypt4gh, scratch, unprocessed
 
 def decryptFile(configYml, inputFolder, yml):
 	encryptedFile = os.path.join(inputFolder, configYml.getValue(encryptedInput))
