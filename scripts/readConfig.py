@@ -11,24 +11,24 @@ import datetime
 import errno
 from ConfigYml import ConfigYml
 
-from constants import yamlFileName, basePath, tsdSecretKeyPath, inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting,\
-	scriptId, schizophrenia, crypt4gh, scratch, unprocessed
+from constants import yamlFileName, basePath, tsdSecretKeyPath, inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting, \
+    encryptedInputLabel, scriptId, schizophrenia, crypt4gh, scratch, unprocessed
 
 def decryptFile(configYml, inputFolder, yml):
-	encryptedFile = os.path.join(inputFolder, configYml.getValue(encryptedInput))
+	encryptedFile = os.path.join(inputFolder, configYml.getValue(encryptedInputLabel))
 	# Verify that the file exists on disk
 	if not os.path.isfile(encryptedFile):
 		print("Encrypted file " + encryptedFile + " not found, exiting")
 		quit()
 
 	# Change config file decrypting status to true
-	print("Decrypting " + configYml.getValue(encryptedInput))
+	print("Decrypting " + configYml.getValue(encryptedInputLabel))
 
 	# configYml.setValue(decrypting) = "True"
 	# configYml.dumpYAML(yml)
 
 	decryptedFilePath = os.path.join(inputFolder,
-		os.path.splitext(configYml.getValue(encryptedInput))[0])
+		os.path.splitext(configYml.getValue(encryptedInputLabel))[0])
 	# Decrypt file with crypt4gh
 	# TODO Make this as general and easy as possible to configure
 	# TODO Make the script exit if the decryption fails with the "No supported encryption method" error message, this means that the sender had the wrong public key during encryption before sending the file
@@ -186,7 +186,7 @@ def runSchizophrenia(yamlConfigPath, dir):
 	if not os.path.isdir(scratchPath):
 		os.mkdir(scratchPath)
 
-	encryptedFile = os.path.join(inputFolder, configYml.getValue(encryptedInput))
+	encryptedFile = os.path.join(inputFolder, configYml.getValue(encryptedInputLabel))
 	copy(encryptedFile, scratchPath)
 
 	configYml.setValue(decrypting, "True") 
