@@ -12,7 +12,7 @@ class ConfigYml():
 
     def __init__(self, path):
         with open(path) as f:
-            self._configYmlTop = yaml.load(f, Loader=yaml.FullLoader)
+            self._configYmlTop = yaml.load(f)
         self._configYml = self._configYmlTop[0]
 
     def initFromArgs(self, args):

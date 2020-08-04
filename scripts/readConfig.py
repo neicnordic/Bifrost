@@ -12,23 +12,23 @@ import errno
 from ConfigYml import ConfigYml
 
 from constants import yamlFileName, basePath, tsdSecretKeyPath, inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting, \
-    encryptedInput, scriptId, schizophrenia, crypt4gh, scratch, unprocessed
+    encryptedInputLabel, scriptId, schizophrenia, crypt4gh, scratch, unprocessed
 
 def decryptFile(configYml, inputFolder, yml):
-	encryptedFile = os.path.join(inputFolder, configYml.getValue(encryptedInput))
+	encryptedFile = os.path.join(inputFolder, configYml.getValue(encryptedInputLabel))
 	# Verify that the file exists on disk
 	if not os.path.isfile(encryptedFile):
 		print("Encrypted file " + encryptedFile + " not found, exiting")
 		quit()
 
 	# Change config file decrypting status to true
-	print("Decrypting " + configYml.getValue(encryptedInput))
+	print("Decrypting " + configYml.getValue(encryptedInputLabel))
 
 	# configYml.setValue(decrypting) = "True"
 	# configYml.dumpYAML(yml)
 
 	decryptedFilePath = os.path.join(inputFolder,
-		os.path.splitext(configYml.getValue(encryptedInput))[0])
+		os.path.splitext(configYml.getValue(encryptedInputLabel))[0])
 	# Decrypt file with crypt4gh
 	# TODO Make this as general and easy as possible to configure
 	# TODO Make the script exit if the decryption fails with the "No supported encryption method" error message, this means that the sender had the wrong public key during encryption before sending the file
@@ -95,7 +95,7 @@ def imputation(yamlConfigPath, dir):
 	while True:
 		if configYml[0]["fileCopied"] == "False" and configYml[0]["decrypting"] == "False":
 			# Put the encrypted input file in a variable with absolute path added
-			encryptedFile = os.path.join(dir, configYml[0]["encryptedInput"])
+			encryptedFile = os.path.join(dir, configYml[0]["encryptedInputLabel"])
 
 			calcMd5Sum(encryptedFile)
 
@@ -122,7 +122,7 @@ def imputation(yamlConfigPath, dir):
 			os.chdir(copyDest)
 
 			# Change config file decrypting status to true
-			print("Decrypting " + configYml[0]["encryptedInput"])
+			print("Decrypting " + configYml[0]["encryptedInputLabel"])
 			configYml[0]["decrypting"] = "True"
 			with open(yamlConfigPath, "w") as f:
 				yaml.dump(configYml, f, default_flow_style=False)
@@ -130,7 +130,7 @@ def imputation(yamlConfigPath, dir):
 			# Decrypt file with crypt4gh
 			# TODO Make this as general and easy as possible to configure
 			# TODO Make the script exit if the decryption fails with the "No supported encryption method" error message, this means that the sender had the wrong public key during encryption before sending the file
-			decryptedFile = os.path.join(copyDest, re.sub('\.c4gh$', '', configYml[0]["encryptedInput"]))
+			decryptedFile = os.path.join(copyDest, re.sub('\.c4gh$', '', configYml[0]["encryptedInputLabel"]))
 			decrypt = crypt4gh + " decrypt --sk " + tsdSecretKeyPath + " < " + encryptedFile + " > " + decryptedFile
 			subprocess.call(decrypt, shell=True)
 			print("Done decrypting")
@@ -186,7 +186,7 @@ def runSchizophrenia(yamlConfigPath, dir):
 	if not os.path.isdir(scratchPath):
 		os.mkdir(scratchPath)
 
-	encryptedFile = os.path.join(inputFolder, configYml.getValue(encryptedInput))
+	encryptedFile = os.path.join(inputFolder, configYml.getValue(encryptedInputLabel))
 	copy(encryptedFile, scratchPath)
 
 	configYml.setValue(decrypting, "True") 
