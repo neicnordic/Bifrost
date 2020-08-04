@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.8
 
 from glob import glob
 import re
@@ -23,9 +23,6 @@ def decryptFile(configYml, inputFolder, yml):
 
 	# Change config file decrypting status to true
 	print("Decrypting " + configYml.getValue(encryptedInputLabel))
-
-	# configYml.setValue(decrypting) = "True"
-	# configYml.dumpYAML(yml)
 
 	decryptedFilePath = os.path.join(inputFolder,
 		os.path.splitext(configYml.getValue(encryptedInputLabel))[0])
@@ -55,19 +52,17 @@ def loadConfig(yamlConfigPath):
 	# Load the config file
 	try:
 		with open(yamlConfigPath) as file:
-#			print(yamlConfigPath)
 			global configYml
-			configYml = yaml.load(file)
+			configYml = yaml.load(file, Loader=yaml.FullLoader)
 	# Print error message if file is not found
 	except IOError:
 		print("Config file not found, nothing to do")
 
 def calcMd5Sum(encryptedFile):
 	# Verify that the encrypted file has been completely transferred before anything else is done
-	# TODO: This should be a function
 	try:
 		print(encryptedFile)
-		f = open(encryptedFile)
+		f = open(encryptedFile, "rb")
 		print("Preparing to calculate md5sum on encrypted input file")
 		data = f.read()
 
@@ -95,7 +90,7 @@ def imputation(yamlConfigPath, dir):
 	while True:
 		if configYml[0]["fileCopied"] == "False" and configYml[0]["decrypting"] == "False":
 			# Put the encrypted input file in a variable with absolute path added
-			encryptedFile = os.path.join(dir, configYml[0]["encryptedInputLabel"])
+			encryptedFile = os.path.join(dir, configYml[0]["encryptedInput"])
 
 			calcMd5Sum(encryptedFile)
 
@@ -122,7 +117,7 @@ def imputation(yamlConfigPath, dir):
 			os.chdir(copyDest)
 
 			# Change config file decrypting status to true
-			print("Decrypting " + configYml[0]["encryptedInputLabel"])
+			print("Decrypting " + configYml[0]["encryptedInput"])
 			configYml[0]["decrypting"] = "True"
 			with open(yamlConfigPath, "w") as f:
 				yaml.dump(configYml, f, default_flow_style=False)
@@ -130,7 +125,7 @@ def imputation(yamlConfigPath, dir):
 			# Decrypt file with crypt4gh
 			# TODO Make this as general and easy as possible to configure
 			# TODO Make the script exit if the decryption fails with the "No supported encryption method" error message, this means that the sender had the wrong public key during encryption before sending the file
-			decryptedFile = os.path.join(copyDest, re.sub('\.c4gh$', '', configYml[0]["encryptedInputLabel"]))
+			decryptedFile = os.path.join(copyDest, re.sub('\.c4gh$', '', configYml[0]["encryptedInput"]))
 			decrypt = crypt4gh + " decrypt --sk " + tsdSecretKeyPath + " < " + encryptedFile + " > " + decryptedFile
 			subprocess.call(decrypt, shell=True)
 			print("Done decrypting")
