@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 import re
 import os
@@ -35,7 +35,7 @@ def submitJob(args):
 		print(os.path.abspath(encryptedInput))
 
 		# Open,close, read file and calculate md5sum on its contents
-		with open(os.path.abspath(encryptedInput)) as fileToCheck:
+		with open(os.path.abspath(encryptedInput), "rb") as fileToCheck:
 			# read contents of the file
 			data = fileToCheck.read()
 			# pipe contents of the file through

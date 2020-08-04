@@ -1,3 +1,5 @@
 */*.pyc
 logs/*.log
 *.html
+scripts/__pycache__/
+*.swp
