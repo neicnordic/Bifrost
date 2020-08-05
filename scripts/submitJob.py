@@ -67,8 +67,6 @@ def imputeJob(args):
 
 	# Define destination folder and input files, then send them
 	inputDir = os.path.join("unprocessed-" + re.sub('\.vcf.gz.c4gh$', '', inputBasename), '')
-	print(inputDir)
-	quit()
 	s3dest = "s3://bifrost-inputs/" + inputDir
 	inputs = vcf, args.personalPubKey, os.path.join("settings", yamlFileName), s3dest
 	inputs = ' '.join(inputs)
