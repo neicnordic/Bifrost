@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 import re
 import sys
@@ -34,7 +34,7 @@ open("lockfile", 'a').close()
 print("Created lock file so no other job can be started.")
 if not os.path.isdir("outputs"):
 	os.makedirs("outputs")
-	os.chmod("outputs", 0777)
+	os.chmod("outputs", 0o777)
 	print("Created outputs directory.")
 else:
 	print("Outputs directory folder already exists.")
@@ -44,7 +44,7 @@ outputs = os.path.join(cwd, "outputs")
 # Load the config file
 try:
 	with open(yamlFileName) as file:
-		configYml = yaml.load(file)
+		configYml = yaml.load(file, Loader=yaml.FullLoader)
 # Print error message if file is not found
 except IOError:
 	print("Config file not found, exiting")
@@ -56,7 +56,7 @@ if configYml[0]["jobType"] == "imputation":
 	while True:
 		if configYml[0]["fileCopied"] == "True" and configYml[0]["decrypting"] == "True":
 			# Put the encrypted input file in a variable
-			inputFile = re.sub('\.c4gh$', '', configYml[0]["encryptedInputLabel"])
+			inputFile = re.sub('\.c4gh$', '', configYml[0]["encryptedInput"])
 
 			# Verify that the file exists on disk
 			try:
@@ -83,7 +83,7 @@ if configYml[0]["jobType"] == "imputation":
 
 			# Build docker run command
 			dockerCmd = "docker run --rm -t --name impute "
-			imageName = "genepi/imputationserver:latest "
+			imageName = "genepi/imputationserver:v1.4.1 "
 			startImpute = "sh -c '/bifrost/scripts/startImpute.sh'"
 
 			# Complete docker command
@@ -119,10 +119,8 @@ elif configYml[0]["jobType"] == "schizophrenia":
 
 	print("Running Rscript")
 
-#	command = '''singularity exec /tsd/p1054/data/durable/rmd-tidyverse_test.sif Rscript --verbose -e "rmarkdown::render('/tsd/p1054/home/p1054-radmilko/tryggve_test/tryggve.query1.v1.Rmd',params=list(arg1='/tsd/p1054/home/p1054-radmilko/tryggve_test',arg2='NOR'))" '''
 	command = '''singularity exec -B /net/tsd-evs.tsd.usit.no/p1054/data/durable/BifrostWork/Tryggve_psych/tryggve.query1.v2:/INPUTS /tsd/p1054/data/durable/rmd-tidyverse_test.sif Rscript --verbose -e "rmarkdown::render('/INPUTS/tryggve.query1.v2.Rmd',params=list(arg1='/INPUTS',arg2='NOR'))" '''
 	subprocess.call(command, shell=True)
-#	copy('/tsd/p1054/home/p1054-radmilko/tryggve_test/tryggve.query1.v1.html', outputs)
 	copy('/net/tsd-evs.tsd.usit.no/p1054/data/durable/BifrostWork/Tryggve_psych/tryggve.query1.v2/tryggve.query1.v2.html', outputs)
 
 	open(cwd + "done", 'a').close()
