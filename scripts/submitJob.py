@@ -17,15 +17,15 @@ from constants import yamlFileName, basePath, schizophrenia, encryptedInputLabel
 parser = argparse.ArgumentParser(description='Define job parameters for query submission')
 parser.add_argument('--vcf', type=str, action='store',
 					help='VCF file for imputation job submission')
-parser.add_argument('--jobType', type=str, action='store',
+parser.add_argument('--jobType', type=str, action='store', required=True,
 					help='Define job type, imputation and schizophrenia are valid')
-parser.add_argument('--country', type=str, action='store',
+parser.add_argument('--country', type=str, action='store', required=True,
 					help='Define in which country to run the job or jobs, currently only norway is valid')
 parser.add_argument('--scriptId', type=str, action='store',
 					help='Define what script to run (for schizophrenia use case)')
 parser.add_argument('--remotePubKey', type=str, action='store',
 					help='Supply the public key for encryption of input file')
-parser.add_argument('--personalPubKey', type=str, action='store',
+parser.add_argument('--personalPubKey', type=str, action='store', required=True,
 					help='Supply the public key for encryption of input file')
 parser.add_argument('--personalSecKey', type=str, action='store',
 					help='Supply the secret key for encryption of input file')
