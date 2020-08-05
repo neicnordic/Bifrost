@@ -33,11 +33,9 @@ parser.add_argument('--sczConfig', type=str, action='store',
 					help='Schizophrenia config/parameters file')
 args = parser.parse_args()
 
-
 def imputeJob(args):
-	# Open the config file
-	with open("settings/" + yamlFileName) as f:
-		configYml = yaml.load(f, Loader=yaml.FullLoader)
+
+	configYml = ConfigYml(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'settings', yamlFileName))
 
 	vcf = os.path.abspath(args.vcf)
 	inputBasename = os.path.basename(vcf)
@@ -52,18 +50,11 @@ def imputeJob(args):
 		print("Calculating md5sum")
 		md5Returned = hashlib.md5(data).hexdigest()
 
-	# Add imputation specific lines to the config.yml file
-	configYml[0]["jobType"] = args.jobType
-	configYml[0]["country"] = args.country
-	configYml[0]["md5sum"] = md5Returned
-	configYml[0]["pubKey"] = personalPubKeyBasename
-	configYml[0]["encryptedInput"] = vcf
-	configYml[0]["fileCopied"] = "False"
-	configYml[0]["decrypting"] = "False"
+	configYml.initFromArgs(args)
 
-	# Write changes to the config.yml file
-	with open("settings/" + yamlFileName, "w") as f:
-		yaml.dump(configYml, f, default_flow_style=False)
+	configYml.setValue("md5sum", md5Returned)
+
+	configYml.dumpYAML(os.path.join("settings/", yamlFileName))
 
 	# Define destination folder and input files, then send them
 	inputDir = os.path.join("unprocessed-" + re.sub('\.vcf.gz.c4gh$', '', inputBasename), '')
@@ -109,9 +100,16 @@ def transferFiles(inputFiles):
 	s3command = "tsd-s3cmd put " + inputFiles
 	print("We are now ready to transfer the input files, please enter your username, password and one time code")
 	subprocess.call(s3command, shell=True)
+	clearYml
+
+def clearYml():
+	# Clear the yaml file once the files have been uploaded
+	with open(r'settings/config.yml', 'w') as file:
+		documents = yaml.dump([{'country' : []}], file)
 
 def main():
 
+	clearYml()
 	if args.jobType == "imputation":
 		imputeJob(args)
 	elif args.jobType == "schizophrenia":
