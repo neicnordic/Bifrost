@@ -33,7 +33,6 @@ parser.add_argument('--sczConfig', type=str, action='store',
 					help='Schizophrenia config/parameters file')
 args = parser.parse_args()
 
-
 def imputeJob(args):
 	# Open the config file
 	with open("settings/" + yamlFileName) as f:
@@ -109,9 +108,16 @@ def transferFiles(inputFiles):
 	s3command = "tsd-s3cmd put " + inputFiles
 	print("We are now ready to transfer the input files, please enter your username, password and one time code")
 	subprocess.call(s3command, shell=True)
+	clearYml
+
+def clearYml():
+	# Clear the yaml file once the files have been uploaded
+	with open(r'settings/config.yml', 'w') as file:
+		documents = yaml.dump([{'country' : []}], file)
 
 def main():
 
+	clearYml()
 	if args.jobType == "imputation":
 		imputeJob(args)
 	elif args.jobType == "schizophrenia":
