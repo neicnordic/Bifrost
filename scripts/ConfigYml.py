@@ -1,8 +1,9 @@
 
 import yaml
+import os
 
 from constants import inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting, \
-    encryptedInputLabel, scriptId, schizophrenia
+    encryptedInputLabel, scriptId, schizophrenia, imputation
 
 allowedNames = [inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting,
                 encryptedInputLabel, scriptId]
@@ -23,6 +24,10 @@ class ConfigYml():
                 self._configYml[scriptId] = args.scriptId
                 self._configYml[fileCopied] = 'False'
                 self._configYml[decrypting] = 'False'
+            if self._configYml[jobType] == imputation:
+                self._configYml[fileCopied] = 'False'
+                self._configYml[decrypting] = 'False'
+                self._configYml[encryptedInputLabel] = os.path.basename(args.vcf)
 
     def dumpYAML(self, yamlPath):
         with open(yamlPath, "w") as f:
