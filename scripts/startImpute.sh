@@ -8,7 +8,7 @@ DOCKER_CORES=4
 cd /data
 
 start-hadoop && \
-cloudgene run imputationserver@1.2.7 \
+cloudgene run imputationserver@1.4.1 \
 --refpanel apps@hapmap-2@2.0.0 \
 --files /inputs/ \
 --conf /etc/hadoop/conf \
