@@ -108,7 +108,7 @@ def imputation(yamlConfigPath, dir):
 			print(encryptedFile)
 
 			# Copy pubkey to the scratch disk
-			pubKey = os.path.join(dir, configYml[0]["pubKey"])
+			pubKey = os.path.join(dir, configYml[0]["personalPubKey"])
 			print("Copying public key to " + copyDest)
 			copyfile(pubKey, copyDest + os.path.basename(pubKey))
 			pubKey = os.path.join(copyDest, os.path.basename(pubKey))
@@ -170,11 +170,8 @@ def imputation(yamlConfigPath, dir):
 def runSchizophrenia(yamlConfigPath, dir):
 	# This gets executed when the jobType is schizophrenia and the fileCopied field is False in the config file
 	configYml = ConfigYml(yamlConfigPath)
-#	if configYml.getValue(jobType) == schizophrenia and configYml.getValue(fileCopied) == "False":
-#		print("Test scz")
 	inputFolder = dir
-#		if configYml.getValue(fileCopied) == "False" and configYml.getValue(decrypting) == "False":
-			
+
 	destDirName = re.sub('unprocessed', 'decrypted', os.path.basename(dir))
 	scratchPath = os.path.join(scratch, destDirName)
 

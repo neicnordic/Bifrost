@@ -53,6 +53,7 @@ def imputeJob(args):
 	configYml.initFromArgs(args)
 
 	configYml.setValue("md5sum", md5Returned)
+	configYml.setValue("personalPubKey", personalPubKey)
 
 	configYml.dumpYAML(os.path.join("settings/", yamlFileName))
 

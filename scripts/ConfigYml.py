@@ -28,6 +28,7 @@ class ConfigYml():
                 self._configYml[fileCopied] = 'False'
                 self._configYml[decrypting] = 'False'
                 self._configYml[encryptedInputLabel] = os.path.basename(args.vcf)
+                self._configYml["personalPubKey"] = os.path.basename(args.personalPubKey)
 
     def dumpYAML(self, yamlPath):
         with open(yamlPath, "w") as f:
