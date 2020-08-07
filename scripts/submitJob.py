@@ -113,6 +113,7 @@ def main():
 	clearYml()
 	if args.jobType == "imputation":
 		imputeJob(args)
+		clearYml()
 	elif args.jobType == "schizophrenia":
 		sczJob(args)
 
