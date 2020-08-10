@@ -70,17 +70,15 @@ def sczJob(args):
 	configYml.initFromArgs(args)
 
 	encryptedConfig = encryptFile(os.path.abspath(args.sczConfig), os.path.abspath(args.personalPubKey), os.path.abspath(args.personalSecKey))
-	encrInDir = os.path.abspath("unprocessed-" + datetime.now().strftime('%Y-%m-%d-%H:%M:%S'))
-	os.mkdir(encrInDir)
-	copy(encryptedConfig, encrInDir)
-	copy(args.personalPubKey, encrInDir)
-
 	configYml.setValue(encryptedInputLabel, encryptedConfig)
+	configYml.dumpYAML(os.path.join("settings", yamlFileName))
 
-	configYml.dumpYAML(os.path.join(encrInDir, yamlFileName))
+	inputDir = "unprocessed-" + datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+	s3dest = "s3://bifrost-inputs/" + inputDir + "/"
+	inputs = [encryptedConfig, args.personalPubKey, os.path.join("settings", yamlFileName), s3dest]
+	inputs = ' '.join(inputs)
 
-	# Run scp to copy the file
-	transferFiles(encrInDir)
+	transferFiles(inputs)
 
 
 def encryptFile(filePath, remotePubKey, personalSecKey):
