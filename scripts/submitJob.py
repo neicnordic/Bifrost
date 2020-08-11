@@ -7,7 +7,6 @@ import yaml
 import hashlib
 import argparse
 import subprocess
-from subprocess import Popen, PIPE
 from shutil import copy
 from datetime import datetime
 from ConfigYml import ConfigYml
