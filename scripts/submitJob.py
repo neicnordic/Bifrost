@@ -7,6 +7,7 @@ import yaml
 import hashlib
 import argparse
 import subprocess
+from subprocess import Popen, PIPE
 from shutil import copy
 from datetime import datetime
 from ConfigYml import ConfigYml
@@ -36,11 +37,11 @@ args = parser.parse_args()
 def imputeJob(args):
 
 	configYml = ConfigYml(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'settings', yamlFileName))
+	vcf = args.vcf
+	assert vcf.endswith(".c4gh"), "File name does not end with .c4gh, is the input file encrypted?"
 
-	vcf = os.path.abspath(args.vcf)
 	inputBasename = os.path.basename(vcf)
 	personalPubKey = os.path.abspath(args.personalPubKey)
-	personalPubKeyBasename = os.path.basename(personalPubKey)
 
 	# Open,close, read file and calculate md5sum on its contents
 	with open(os.path.abspath(vcf), "rb") as fileToCheck:
@@ -90,18 +91,17 @@ def encryptFile(filePath, remotePubKey, personalSecKey):
 	encryptedInput = inputBaseName + '.c4gh'
 
 	encrypt = "crypt4gh encrypt --sk " + personalSecKey + " --recipient_pk " + remotePubKey + " < " + filePath + " > " + encryptedInput
-	subprocess.call(encrypt, shell=True)
+
+	subprocess.run(encrypt, shell=True, check=True)
 	#TODO check if encrypting was completed succesfully
 	print("Input file has been encrypted")
 
 	return encryptedInput
 
-
 def transferFiles(inputFiles):
 	s3command = "tsd-s3cmd put " + inputFiles
-	print("We are now ready to transfer the input files, please enter your username, password and one time code")
-	subprocess.call(s3command, shell=True)
-	clearYml
+	print("We are now ready to transfer the input files, please enter your username, password and one time code \n")
+	subprocess.run(s3command, shell=True, check=True)
 
 def clearYml():
 	# Clear the yaml file once the files have been uploaded
@@ -109,13 +109,13 @@ def clearYml():
 		documents = yaml.dump([{'country' : []}], file)
 
 def main():
-
 	clearYml()
 	if args.jobType == "imputation":
 		imputeJob(args)
 		clearYml()
 	elif args.jobType == "schizophrenia":
 		sczJob(args)
+		clearYml()
 
 if __name__ == "__main__":
 	main()
