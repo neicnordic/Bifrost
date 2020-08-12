@@ -18,4 +18,5 @@ encryptedInputLabel = 'encryptedInput'
 scriptId = 'scriptId'
 schizophrenia = 'schizophrenia'
 imputation = 'imputation'
+personalPubKey = "personalPubKey"
 crypt4gh = '/usr/local/bin/crypt4gh'

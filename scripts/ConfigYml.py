@@ -3,10 +3,10 @@ import yaml
 import os
 
 from constants import inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting, \
-    encryptedInputLabel, scriptId, schizophrenia, imputation
+    encryptedInputLabel, scriptId, schizophrenia, imputation, personalPubKey
 
 allowedNames = [inputFile, jobType, country, md5sum, encrMd5sum, fileCopied, decrypting,
-                encryptedInputLabel, scriptId]
+                encryptedInputLabel, scriptId, personalPubKey]
 
 
 class ConfigYml():
@@ -28,7 +28,7 @@ class ConfigYml():
                 self._configYml[fileCopied] = 'False'
                 self._configYml[decrypting] = 'False'
                 self._configYml[encryptedInputLabel] = os.path.basename(args.vcf)
-                self._configYml["personalPubKey"] = os.path.basename(args.personalPubKey)
+                self._configYml[personalPubKey] = os.path.basename(args.personalPubKey)
 
     def dumpYAML(self, yamlPath):
         with open(yamlPath, "w") as f:

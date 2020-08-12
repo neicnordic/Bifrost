@@ -32,7 +32,17 @@ def decryptFile(configYml, inputFolder, yml):
 	# TODO Make the script exit if the decryption fails with the "No supported encryption method" error message, this means that the sender had the wrong public key during encryption before sending the file
 	decrypt = crypt4gh + " decrypt --sk " + tsdSecretKeyPath + " < " + encryptedFile + " > " + decryptedFilePath
 
-	subprocess.call(decrypt, shell=True)
+	try:
+		subprocess.run(decrypt, shell=True, check=True)
+	except subprocess.CalledProcessError:
+		print("\nDecryption failed")
+		print("This is the failing command: " + decrypt)
+		configYml.setValue(decrypting, "False")
+		configYml.dumpYAML(os.path.join(scratch, yamlFileName))
+		sys.exit(1)
+
+
+#	subprocess.call(decrypt, shell=True)
 	print("Done decrypting")
 
 	# Verify that the input file exists on disk
@@ -105,16 +115,7 @@ def imputation(yamlConfigPath, dir):
 	# Decrypt file with crypt4gh
 	# TODO Make this as general and easy as possible to configure
 	# TODO Make the script exit if the decryption fails with the "No supported encryption method" error message, this means that the sender had the wrong public key during encryption before sending the file
-	decryptedFile = os.path.join(copyDest, re.sub('\.c4gh$', '', configYml.getValue(encryptedInputLabel)))
-	decrypt = crypt4gh + " decrypt --sk " + tsdSecretKeyPath + " < " + encryptedFile + " > " + decryptedFile
-	try:
-		subprocess.run(decrypt, shell=True, check=True)
-	except subprocess.CalledProcessError:
-		print("\nDecryption failed")
-		print("This is the failing command: " + decrypt)
-		configYml.setValue(decrypting, "False")
-		configYml.dumpYAML(os.path.join(scratch, yamlFileName))
-		sys.exit(1)
+	decryptedFilePath = decryptFile(configYml, copyDest, yamlConfigPath)
 
 	# Finally copy the yaml file to the scratch disk
 	copyfile(yamlConfigPath, copyDest + os.path.basename(yamlConfigPath))
@@ -127,16 +128,6 @@ def imputation(yamlConfigPath, dir):
 	# once the file has been decrypted
 	configYml.setValue(fileCopied, "True")
 	configYml.dumpYAML(os.path.join(scratch, yamlFileName))
-
-	# Verify that the input file exists on disk
-	try:
-		f = open(os.path.join(decryptedDir, os.path.basename(decryptedFile)))
-	# Print error message if file not found
-	except IOError:
-		print("Decrypted input file not found, exiting")
-	# Close file handle if the file is found
-	finally:
-		f.close()
 
 	# Change the config file in the "cloned-inputs" directory to "fileCopied = True"
 	# once the file has been decrypted and copied to its new directory
