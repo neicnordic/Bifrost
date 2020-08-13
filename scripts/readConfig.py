@@ -102,7 +102,7 @@ def imputation(yamlConfigPath, dir):
 
 	# Copy pubkey to the scratch disk
 	pubKey = os.path.join(dir, configYml.getValue(personalPubKey))
-	copyfile(pubKey, scratchPath + os.path.basename(pubKey))
+	copyfile(pubKey, os.path.join(scratchPath, os.path.basename(pubKey)))
 	pubKey = os.path.join(scratchPath, os.path.basename(pubKey))
 
 	calcMd5Sum(encryptedFile)
@@ -116,12 +116,12 @@ def imputation(yamlConfigPath, dir):
 	decryptFile(configYml, scratchPath, yamlConfigPath)
 
 	# Finally copy the yaml file to the scratch disk
-	copyfile(yamlConfigPath, scratchPath + os.path.basename(yamlConfigPath))
+	copyfile(yamlConfigPath, os.path.join(scratchPath, os.path.basename(yamlConfigPath)))
 
 	# Change the copied config file in its new directory to "fileCopied = True"
 	# once the file has been decrypted
 	configYml.setValue(fileCopied, "True")
-	configYml.dumpYAML(os.path.join(scratch, yamlFileName))
+	configYml.dumpYAML(os.path.join(scratchPath, yamlFileName))
 
 	# Change the config file in the "cloned-inputs" directory to "fileCopied = True"
 	# once the file has been decrypted and copied to its new directory
@@ -171,6 +171,7 @@ def main():
 		if configYml.getValue(jobType) == "imputation":
 			if configYml.getValue(fileCopied) == "False" and configYml.getValue(decrypting) == "False":
 				imputation(yamlConfigPath, dir)
+				exit()
 			elif configYml.getValue(fileCopied) == "False" and configYml.getValue(decrypting) == "True":
 				print("File decryption has started, files have not been transferred, waiting")
 			elif configYml.getValue(fileCopied) == "True" and configYml.getValue(decrypting) == "False":
@@ -183,6 +184,7 @@ def main():
 		elif configYml.getValue(jobType) == "schizophrenia":
 			if configYml.getValue(fileCopied) == "False" and configYml.getValue(decrypting) == "False":
 				runSchizophrenia(yamlConfigPath, dir)
+				exit()
 			elif configYml.getValue(fileCopied) == "False" and configYml.getValue(decrypting) == "True":
 				print("File decryption has started, files have not been transferred, waiting")
 			elif configYml.getValue(fileCopied) == "True" and configYml.getValue(decrypting) == "False":
