@@ -102,7 +102,6 @@ def imputation(yamlConfigPath, dir):
 
 	# Copy pubkey to the scratch disk
 	pubKey = os.path.join(dir, configYml.getValue(personalPubKey))
-	print(os.path.join(scratchPath, os.path.basename(pubKey)))
 	copyfile(pubKey, os.path.join(scratchPath, os.path.basename(pubKey)))
 	pubKey = os.path.join(scratchPath, os.path.basename(pubKey))
 
@@ -117,7 +116,6 @@ def imputation(yamlConfigPath, dir):
 	decryptFile(configYml, scratchPath, yamlConfigPath)
 
 	# Finally copy the yaml file to the scratch disk
-	print(os.path.join(scratchPath, os.path.basename(yamlConfigPath)))
 	copyfile(yamlConfigPath, os.path.join(scratchPath, os.path.basename(yamlConfigPath)))
 
 	# Change the copied config file in its new directory to "fileCopied = True"
