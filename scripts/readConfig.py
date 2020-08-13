@@ -28,7 +28,6 @@ def decryptFile(configYml, inputFolder, yml):
 	decryptedFilePath = os.path.join(inputFolder,
 		os.path.splitext(configYml.getValue(encryptedInputLabel))[0])
 	# Decrypt file with crypt4gh
-	# TODO Make this as general and easy as possible to configure
 	# TODO Make the script exit if the decryption fails with the "No supported encryption method" error message, this means that the sender had the wrong public key during encryption before sending the file
 	decrypt = crypt4gh + " decrypt --sk " + tsdSecretKeyPath + " < " + encryptedFile + " > " + decryptedFilePath
 
@@ -42,9 +41,6 @@ def decryptFile(configYml, inputFolder, yml):
 		sys.exit(1)
 
 
-#	subprocess.call(decrypt, shell=True)
-	print("Done decrypting")
-
 	# Verify that the input file exists on disk
 	try:
 		f = open(decryptedFilePath)
@@ -55,7 +51,8 @@ def decryptFile(configYml, inputFolder, yml):
 	finally:
 		f.close()
 
-	print('File can be opened')
+	print("File can be opened")
+	print("Done decrypting")
 
 	return decryptedFilePath
 
@@ -82,47 +79,44 @@ def calcMd5Sum(encryptedFile):
 	finally:
 		f.close()
 
-def imputation(yamlConfigPath, dir):
-	copyDest = os.path.join(scratch, os.path.basename(dir), '')
-
-	# Put the encrypted input file in a variable with absolute path added
-	encryptedFile = os.path.join(dir, configYml.getValue(encryptedInputLabel))
-
-	calcMd5Sum(encryptedFile)
+def mkDir(dir, scratch):
+	destDirName = re.sub("unprocessed", "decrypted", os.path.basename(dir))
+	global scratchPath
+	scratchPath = os.path.join(scratch, destDirName)
 
 	# Create the destination directory
 	try:
-		os.mkdir(copyDest)
+		os.mkdir(scratchPath)
 	except OSError as e:
 		if e.errno != errno.EEXIST:
 			raise
 
+def imputation(yamlConfigPath, dir):
+
+	mkDir(dir, scratch)
+
 	# Copy encrypted input file to the scratch disk
-	copyfile(encryptedFile, copyDest + os.path.basename(encryptedFile))
-	encryptedFile = os.path.join(copyDest, os.path.basename(encryptedFile))
+	encryptedFile = os.path.join(dir, configYml.getValue(encryptedInputLabel))
+
+	copyfile(encryptedFile, os.path.join(scratchPath, os.path.basename(encryptedFile)))
 
 	# Copy pubkey to the scratch disk
 	pubKey = os.path.join(dir, configYml.getValue(personalPubKey))
-	copyfile(pubKey, copyDest + os.path.basename(pubKey))
-	pubKey = os.path.join(copyDest, os.path.basename(pubKey))
+	copyfile(pubKey, scratchPath + os.path.basename(pubKey))
+	pubKey = os.path.join(scratchPath, os.path.basename(pubKey))
 
 	calcMd5Sum(encryptedFile)
-	os.chdir(copyDest)
+	os.chdir(scratchPath)
 
 	# Change config file decrypting status to true
 	configYml.setValue(decrypting, "True")
 
 	# Decrypt file with crypt4gh
-	# TODO Make this as general and easy as possible to configure
 	# TODO Make the script exit if the decryption fails with the "No supported encryption method" error message, this means that the sender had the wrong public key during encryption before sending the file
-	decryptedFilePath = decryptFile(configYml, copyDest, yamlConfigPath)
+	decryptFile(configYml, scratchPath, yamlConfigPath)
 
 	# Finally copy the yaml file to the scratch disk
-	copyfile(yamlConfigPath, copyDest + os.path.basename(yamlConfigPath))
-
-	# Rename the copy directory destination when the input file has been decrypted
-	decryptedDir = re.sub("unprocessed", "decrypted", copyDest)
-	os.rename(copyDest, decryptedDir)
+	copyfile(yamlConfigPath, scratchPath + os.path.basename(yamlConfigPath))
 
 	# Change the copied config file in its new directory to "fileCopied = True"
 	# once the file has been decrypted
