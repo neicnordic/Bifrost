@@ -14,7 +14,20 @@ from ConfigYml import ConfigYml
 
 from constants import yamlFileName, basePath, imputationserver, bifrost, encryptedInputLabel, schizophrenia, scratch
 
-# If statements that runs the imputation job when the fileCopied field is False in the config file
+def runSubProcess(command):
+	try:
+		subprocess.run(command, shell=True, check=True)
+	except:
+		print("Job has unexpectedly stopped, cleaning up")
+		if docker == "true":
+			dockerRm = "docker rm -f impute"
+			subprocess.run(dockerRm, shell=True, check=True)
+		os.remove("lockfile")
+		failDirName = re.sub("decrypted", "failed", cwd)
+		os.rename(cwd, failDirName)
+		sys.exit()
+
+
 def imputeJob():
 	# Put the encrypted input file in a variable
 	inputFile = re.sub('\.c4gh$', '', configYml[0]["encryptedInput"])
@@ -31,11 +44,11 @@ def imputeJob():
 	print("Splitting vcf by chromosome")
 
 	global bifrost
-#	split = bifrost + "/scripts/splitByChromosome.sh " + os.path.join(cwd, inputFile) + " /usr/bin/tabix " + "/usr/bin/bgzip"
 	split = [os.path.join(cwd, inputFile), "/usr/bin/tabix", "/usr/bin/bgzip"]
 	split = ' '.join(split)
 	split = bifrost + "scripts/splitByChromosome.sh " + split
-	subprocess.run(split, shell=True, check=True)
+	runSubProcess(split)
+#	subprocess.run(split, shell=True, check=True)
 	print("Finished splitting vcf file by chromosome")
 	print("Starting impute job")
 
@@ -58,7 +71,10 @@ def imputeJob():
 	# Complete docker command
 #	imputeJob = "sudo -u p1054-tsdfx " + dockerCmd + mounts + imageName + startImpute
 	imputeJob = dockerCmd + mounts + imageName + startImpute
-	subprocess.run(imputeJob, shell=True, check=True)
+	global docker
+	docker = "true"
+	runSubProcess(imputeJob)
+
 	# Start the imputation job
 
 	# Create "done" file to show that the docker job exited (successfully)
@@ -98,18 +114,20 @@ def sczJob():
 
 def main():
 	searchPath = glob(os.path.join(scratch, "decrypted-*"))
-
+	if len(searchPath) < 1:
+		print("No new directories found, exiting")
+		exit()
 	# Setting current work directory to the "next one" that gets globbed when the searchPath variable is created
 	# No fancy job prioritization is done
 	i = 0
 	for dir in searchPath:
 		if os.path.isfile(dir + "/lockfile"):
 			print(dir + " has a lockfile, a job is running, exiting now.")
-			quit()
+			exit()
 
 	print("No job is running, will process data in " + searchPath[0] + ", creating lockfile and attempting to start job.")
 	global cwd
-	cwd = os.path.join(searchPath[0])
+	cwd = os.path.join(searchPath[0], '')
 	os.chdir(cwd)
 
 	# Create lockfile
