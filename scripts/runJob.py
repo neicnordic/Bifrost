@@ -48,7 +48,7 @@ def imputeJob():
 	split = ' '.join(split)
 	split = bifrost + "scripts/splitByChromosome.sh " + split
 	runSubProcess(split)
-#	subprocess.run(split, shell=True, check=True)
+
 	print("Finished splitting vcf file by chromosome")
 	print("Starting impute job")
 
@@ -71,11 +71,9 @@ def imputeJob():
 	# Complete docker command
 #	imputeJob = "sudo -u p1054-tsdfx " + dockerCmd + mounts + imageName + startImpute
 	imputeJob = dockerCmd + mounts + imageName + startImpute
-	global docker
-	docker = "true"
-	runSubProcess(imputeJob)
 
 	# Start the imputation job
+	runSubProcess(imputeJob)
 
 	# Create "done" file to show that the docker job exited (successfully)
 	open(cwd + "done", 'a').close()
@@ -99,7 +97,6 @@ def sczJob():
 #	command = '''singularity exec -B /net/tsd-evs.tsd.usit.no/p1054/data/durable/BifrostWork/Tryggve_psych/tryggve.query1.v2:/INPUTS /tsd/p1054/data/durable/rmd-tidyverse_test.sif Rscript --verbose -e "rmarkdown::render('/INPUTS/tryggve.query1.v2.Rmd',params=list(arg1='/INPUTS',arg2='NOR'))" '''
 	command = '''singularity exec -B /home/ubuntu/imputeDisk/01-workspace/00-temp/Tryggve_psych/tryggve.query1.v2:/INPUTS /home/ubuntu/imputeDisk/01-workspace/00-temp/rmd-tidyverse.sif Rscript --verbose -e "rmarkdown::render('/INPUTS/tryggve.query1.v2.Rmd',params=list(arg1='/INPUTS',arg2='NOR'))" '''
 	subprocess.run(command, shell=True, check=True)
-	global outputs
 	copy('/home/ubuntu/imputeDisk/01-workspace/00-temp/Tryggve_psych/tryggve.query1.v2/tryggve.query1.v2.html', outputs)
 
 	open(cwd + "done", 'a').close()
@@ -153,9 +150,15 @@ def main():
 		print("Config file not found, exiting")
 		quit()
 
+	# This global variable is used in the impute job failure handling function to also remove the running docker container
+	# if it is still running after the imputation job encounters an error
+	# It is possible that the only time this may happen is after starting the compute job manually and killing it with CTRL + C
+	# It could be replaced by a better docker job detection mechanism
+	global docker
 	if configYml[0]["jobType"] == "imputation":
 		if configYml[0]["fileCopied"] == "True" and configYml[0]["decrypting"] == "True":
 			print("impute")
+			docker = "true"
 			imputeJob()
 		elif configYml[0]["fileCopied"] == "False" and configYml[0]["decrypting"] == "True":
 			print("File decryption has started, files have not been transferred, waiting")
@@ -165,6 +168,7 @@ def main():
 		if configYml[0]["fileCopied"] == "True" and configYml[0]["decrypting"] == "True":
 			# This gets executed when the jobType is schizophrenia and the fileCopied field is False in the config file
 			print("scz")
+			docker = "false"
 			sczJob()
 
 if __name__ == "__main__":
