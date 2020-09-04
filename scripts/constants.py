@@ -1,6 +1,8 @@
 
 basePath = '/home/ubuntu/imputeDisk/01-workspace/00-temp/'
 tsdSecretKeyPath = '/home/ubuntu/.c4gh/TSD.sec'
+remotePubKey = '/home/ubuntu/.c4gh/TSD.pub'
+personalSecKey = '/home/ubuntu/.c4gh/secretEmblaKey'
 scratch = '/home/ubuntu/imputeDisk/01-workspace/00-temp/bifrost-scratch'
 unprocessed = '/home/ubuntu/imputeDisk/01-workspace/00-temp/cloned-bifrost-inputs'
 finishedJobs = '/home/ubuntu/imputeDisk/01-workspace/00-temp/finishedJobs'
