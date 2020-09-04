@@ -12,20 +12,46 @@ import datetime
 from glob import glob
 from ConfigYml import ConfigYml
 
-from constants import yamlFileName, basePath, imputationserver, bifrost, encryptedInputLabel, schizophrenia, scratch
+from constants import yamlFileName, basePath, imputationserver, bifrost, encryptedInputLabel, schizophrenia, scratch, remotePubKey, personalSecKey
+
+
+def encryptFile(filePath, remotePubKey, personalSecKey):
+	# Encrypt input file
+	print("Encrypting file")
+	inputBaseName = os.path.basename(filePath)
+	outputs = os.path.dirname(filePath)
+	encryptedInput = os.path.join(outputs, inputBaseName + '.c4gh')
+	encrypt = "crypt4gh encrypt --sk " + personalSecKey + " --recipient_pk " + remotePubKey + " < " + filePath + " > " + encryptedInput
+	subprocess.run(encrypt, shell=True, check=True)
+	print("Input file has been encrypted")
+
+	return encryptedInput
+
 
 def runSubProcess(command):
 	try:
 		subprocess.run(command, shell=True, check=True)
 	except:
 		print("Job has unexpectedly stopped, cleaning up")
-		if docker == "true":
-			dockerRm = "docker rm -f impute"
-			subprocess.run(dockerRm, shell=True, check=True)
 		os.remove("lockfile")
 		failDirName = re.sub("decrypted", "failed", cwd)
 		os.rename(cwd, failDirName)
+		if docker == "true":
+			dockerRm = "docker rm -f impute"
+			subprocess.run(dockerRm, shell=True, check=True)
 		sys.exit()
+
+
+def finishJob():
+	# Create "done" file to show that the docker job exited (successfully)
+	open(cwd + "done", 'a').close()
+	print("Job has exited, 'done' file has been created")
+	print("Removing lockfile")
+	os.remove("lockfile")
+	exitedDirName = re.sub("decrypted", "JobFinished", cwd)
+	os.rename(cwd, exitedDirName)
+	print("Work directory has been renamed from " + cwd + " to " + exitedDirName)
+	print("Job finished successfully!")
 
 
 def imputeJob():
@@ -56,12 +82,12 @@ def imputeJob():
 	inputs = os.path.join(cwd, "inputs")
 	inputs = "-v " + inputs + ":/inputs "
 	global outputs
-	outputs = "-v " + outputs + ":/outputs "
+	dockerOutputs = "-v " + outputs + ":/outputs "
 	bifrost = "-v " + bifrost + ":/bifrost "
 
 	global imputationserver
 	imputationserver = "-v " + imputationserver + ":/data "
-	mounts = inputs + outputs + bifrost + imputationserver
+	mounts = inputs + dockerOutputs + bifrost + imputationserver
 
 	# Build docker run command
 	dockerCmd = "docker run --rm -t --name impute "
@@ -75,15 +101,21 @@ def imputeJob():
 	# Start the imputation job
 	runSubProcess(imputeJob)
 
-	# Create "done" file to show that the docker job exited (successfully)
-	open(cwd + "done", 'a').close()
-	print("Job has exited, 'done' file has been created")
-	print("Removing lockfile")
-	os.remove("lockfile")
-	exitedDirName = re.sub("decrypted", "JobFinished", cwd)
-	os.rename(cwd, exitedDirName)
-	print("Work directory has been renamed from " + cwd + " to " + exitedDirName)
-	print("Job finished successfully!")
+	# Encrypt output files
+	encryptedOutputs = re.sub("decrypted", "finishedEncrypted", os.path.basename(os.path.abspath(cwd))) + ".tar.gz"
+	tarOutput = os.path.join(basePath, "finishedJobs", encryptedOutputs)
+#	files = outputs
+	files = os.path.join(outputs, "local")
+	inputs = ["tar", "-zcvf", tarOutput, "-C", files, "../local"]
+	tarCommand = ' '.join(inputs)
+	runSubProcess(tarCommand)
+	encryptFile(tarOutput, remotePubKey, personalSecKey)
+
+	# Remove tar.gz archive
+	os.remove(tarOutput)
+
+	# Wrap everything up
+	finishJob()
 
 
 def sczJob():
