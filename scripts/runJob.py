@@ -102,17 +102,16 @@ def imputeJob():
 	runSubProcess(imputeJob)
 
 	# Encrypt output files
-	encryptedOutputs = re.sub("decrypted", "finishedEncrypted", os.path.basename(os.path.abspath(cwd))) + ".tar.gz"
-	tarOutput = os.path.join(basePath, "finishedJobs", encryptedOutputs)
-#	files = outputs
-	files = os.path.join(outputs, "local")
-	inputs = ["tar", "-zcvf", tarOutput, "-C", files, "../local"]
-	tarCommand = ' '.join(inputs)
+	tarName = re.sub("decrypted", "finishedEncrypted", os.path.basename(os.path.abspath(cwd))) + ".tar.gz"
+	tarOutputPath = os.path.join(basePath, "finishedJobs", tarName)
+#	filesToTar = outputs
+	filesToTar = os.path.join(outputs, "local")
+	tarCommand = ' '.join(["tar", "-zcvf", tarOutputPath, "-C", filesToTar, "."])
 	runSubProcess(tarCommand)
-	encryptFile(tarOutput, remotePubKey, personalSecKey)
+	encryptFile(tarOutputPath, remotePubKey, personalSecKey)
 
 	# Remove tar.gz archive
-	os.remove(tarOutput)
+	os.remove(tarOutputPath)
 
 	# Wrap everything up
 	finishJob()
